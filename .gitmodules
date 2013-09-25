@@ -1,0 +1,3 @@
+[submodule "c++/hmm"]
+	path = c++/hmm
+	url = git@github.com:JohnReid/HMM.git
