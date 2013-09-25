@@ -169,7 +169,7 @@ exe hirji_shifted : pvalues/hirji_shifted_main.cpp pvalues ;
 #
 local PY_EXT_SOURCES =
     pvalues
-    myrrh//myrrh_pylib
+    hmm/myrrh//myrrh_pylib
     /boost/python//boost_python
     /boost/system//boost_system
     /site-config//google-cpu-profiler-if-release
@@ -288,7 +288,7 @@ install lib_install
         /boost/system//boost_system
         /boost/filesystem//boost_filesystem
         /boost/date_time//boost_date_time
-        myrrh//myrrh_pylib
+        hmm/myrrh//myrrh_pylib
         fast
         pvalues
         steme
@@ -356,7 +356,7 @@ for PY_TEST in $(PY_TESTS) {
     }
     bpl-test $(target)
         :   ../python/stempy/test/$(PY_TEST).py
-            _stempy _index _sandbox install 
+            _stempy _index _sandbox install
         :   <pythonpath>$(PROJECT_DIR)/../python
             <pythonpath>$(PROJECT_DIR)/../../Python/Cookbook/python
             <pythonpath>$(PROJECT_DIR)/../../Infpy/python

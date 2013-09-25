@@ -1,0 +1,3 @@
+*.test
+sandbox_seqan_test
+test_*.passed
