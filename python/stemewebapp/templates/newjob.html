@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% set active_page = "newjob" %}
+{% from "_formhelpers.html" import render_field %}
+{% block body %}
+  <form method="post" action="new" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    <dl>
+      {{ render_field(form.name) }}
+      <p>
+      {{ render_field(form.sequences) }}
+      <p>
+      {{ render_field(form.num_motifs) }}
+      <p>
+      {{ render_field(form.bg_model_order) }}
+      <p>
+      {{ render_field(form.bg_fasta_file) }}
+      <p>
+      {{ render_field(form.min_sites) }}
+      <p>
+      {{ render_field(form.max_sites) }}
+      <p>
+      {{ render_field(form.min_w) }}
+      <p>
+      {{ render_field(form.max_w) }}
+      <p>
+      {{ render_field(form.max_start_finding_time) }}
+    </dl>
+    <p><input type=submit value=Run>
+  </form>
+{% endblock %}

@@ -1,0 +1,24 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="275px" height="65px"
+>
+
+<defs>
+  <style type="text/css">
+   <![CDATA[
+    .red {fill:rgb(100%,0%,0%);}
+    .blu {fill:rgb(0%,0%,100%);}
+    .yel {fill:rgb(100%,64.7%,0%);}
+    .gre {fill:rgb(0%,50.2%,0%);}
+    .sser {font-weight:bold; font-family: sans-serif; text-decoration:none;}
+    .arial {font-weight:bold; font-family: arial; text-decoration:none;}
+   ]]>
+  </style>  
+</defs>
+ 
+<text x="0" y="48pt" class="arial" font-size="80" >
+ <tspan class="yel">S</tspan><tspan class="gre">T</tspan><tspan class="blu">E</tspan><tspan class="red">M</tspan><tspan class="blu">E</tspan>
+</text>
+
+</svg>

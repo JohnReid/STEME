@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+#
+# Copyright John Reid 2011, 2012
+#
+
+"""
+Example code to run STEME expectation maximisation algorithm.
+"""
+
+import stempy
+import numpy
+import sys
+
+#
+# Parse options and arguments from command line
+#
+sys.argv = [a.encode(sys.stdin.encoding or 'ascii') for a in sys.argv]
+options, args = stempy.parse_options(stempy.add_options)
+
+#
+# Check we have the correct number of arguments
+#
+if len(args) != 3:
+    raise RuntimeError('USAGE: %s <options> fasta seed num_sites', sys.argv[0])
+fasta_file = args.pop(0)
+seed = args.pop(0)
+num_sites = int(args.pop(0))
+
+#
+# Initialise and run STEME algorithm
+#
+steme = stempy.Algorithm(options)
+steme.initialise(fasta_file)
+starting_point = stempy.Start(
+    num_sites=num_sites, score=0., seed=seed, model=None)
+motif_finder = steme.create_motif_finder()
+em_result = motif_finder._run_em_from_start(starting_point)
+
+#
+# Print some info about results
+#
+print 'Lambda: %f' % em_result.model.lambda_
+print 'Expected # sites: %f' % (steme.data.num_occurrences(8) * em_result.model.lambda_)
+print 'Consensus after EM  : %s' % em_result.cons_after_em
+print 'Final consensus     : %s' % em_result.cons
+print 'PWM:\n%s' % str(numpy.exp(em_result.model.bs.pssm.log_probs.values()))
+
+#
+# Make a motif logo
+#
+print 'Writing motif logo to %s directory' % options.output_dir
+stempy.logo(
+    numpy.exp(em_result.EM.model.bs.pssm.log_probs.values()),
+    'STEME-motif',
+    options.output_dir,
+    make_png=True
+)

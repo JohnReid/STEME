@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+#
+# Copyright John Reid 2012
+#
+
+"""
+Removes the job from the database for the STEME web application.
+"""
+
+
+from stemewebapp import app
+from stemewebapp.models import Job, db
+import sys
+
+#
+# Check arguments
+#
+if len(sys.argv) != 2:
+    print 'USAGE: %s <job uuid>' % (sys.argv[0])
+    sys.exit(-1)
+job_uuid = sys.argv[1]
+
+#
+# Get job
+#
+job = db.session.query(Job).filter_by(uuid=job_uuid).one()
+
+#
+# Delete from database
+#
+db.session.delete(job)
+db.session.commit()

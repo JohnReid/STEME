@@ -1,0 +1,7 @@
+#
+# Exclude all the stuff that is only included as it is under source control
+#
+exclude run-dir/*
+exclude run-dir/*/*
+exclude run-dir/*/*
+exclude python/scripts/*.py

@@ -1,0 +1,403 @@
+#
+# Copyright John Reid 2009, 2010, 2011, 2012, 2013
+#
+
+#
+# project STEME
+#
+
+import path ;
+import doxygen ;
+import pch ;
+
+
+#
+# Some paths
+#
+path-constant MEME_SRC_DIR : $(MEME_DIR)/src ;
+path-constant PROJECT_DIR : . ;
+path-constant DOC_DIR : ../docs/c++ ;
+path-constant RELEASE_INSTALL_DIR : ../python/stempy/_release_build ;
+path-constant DEBUG_INSTALL_DIR : ../python/stempy/_debug_build ;
+
+
+
+#
+# Test if we have MEME source code
+#
+local HAS_MEME_SOURCE_CODE = [ path.exists $(MEME_SRC_DIR)/meme.c ] ;
+if $(HAS_MEME_SOURCE_CODE) {
+    echo "STEME: Found MEME source code at $(MEME_SRC_DIR)" ;
+    local MEME_DEFINE = <define>STEME_HAS_MEME_SOURCE ;
+} else {
+    echo "STEME: Did not find MEME source code" ;
+    local MEME_DEFINE = ;
+}
+
+#
+# Project definition
+#
+project MotifSearch
+    : requirements
+        <use>/site-config//seqan
+        <use>/site-config//numpy
+        <define>MS_HAS_VALGRIND
+        <define>PVAL_LOOKUP # Makes Bejerano's p-value calculations quicker
+        # <define>STEME_USE_OLD_BG_MODEL
+        $(MEME_DEFINE)
+        <source>hmm//hmm
+
+        # <toolset>gcc:<cxxflags>-H # for seeing which files are included where:
+        #http://gamesfromwithin.com/the-care-and-feeding-of-pre-compiled-headers
+        <toolset>gcc:<cxxflags>-Wno-deprecated
+        <toolset>gcc:<cxxflags>-Wno-unused
+
+        # don't output object, write a list of include files
+        # <toolset>gcc:<cxxflags>-MM
+
+        <include>.
+        <include>include
+        <include>$(BOOST_ROOT)
+        <include>$(BOOST_INDEXING_SUITE)
+        <variant>debug:<python-debugging>on
+        <variant>debug:<python>2.7
+    : usage-requirements
+    : default-build release
+    ;
+
+
+
+
+#
+# MEME library
+#
+if $(HAS_MEME_SOURCE_CODE) {
+    local MEME_SRC_FILES =
+        llr
+        logs
+        ;
+    local MEME_REQS =
+        # -I. -I. -I..     -Wall -Wno-unused -DUNIX -D__USE_FIXED_PROTOTYPES__
+        # -O3 -MT glam2-glam2_args.o -MD -MP -MF
+        <define>UNIX
+        <define>__USE_FIXED_PROTOTYPES__
+        <define>HAVE_CONFIG_H
+        ;
+    lib meme
+        : # sources
+            meme/lib.c
+            meme/likelihood.cpp
+            $(MEME_SRC_DIR)/$(MEME_SRC_FILES).c
+        : # requirements
+            <include>$(MEME_DIR)
+            <include>$(MEME_SRC_DIR)
+            $(MEME_REQS)
+            #<link>static
+            <toolset>gcc:<cflags>-fPIC
+        : # default-build
+        : # usage-requirements
+            #$(MEME_REQS)
+        ;
+} else {
+    alias meme ; # empty alias
+}
+
+
+
+
+#
+# Niranjan Nagarajan's FAST p-value software
+# http://www.maths.usyd.edu.au/u/uri/FAST/
+#
+# Note that he uses the following options in the release build:
+#   -g -O3 -Winline --param large-function-growth=10000
+#   --param max-inline-insns-single=10000
+#   --param inline-unit-growth=10000 -Wno-deprecated
+#
+# TODO: Could test if these make a difference.
+#
+local FAST_SOURCES =
+    HS motif_evaluator theta_fns minimize convolution fft utils llr_score ;
+lib fast
+    : # sources
+        FAST/$(FAST_SOURCES).cpp
+        /user-config//fftw3/
+    : # requirements
+        <toolset>gcc:<cflags>-fPIC
+    : # default-build
+    : # usage-requirements
+        <include>FAST
+    ;
+
+
+#
+# p-values library and executable
+#
+local PVALUES_SRC =
+    pvalues/parse.cpp
+    pvalues/bejerano.cpp
+    pvalues/fast.cpp
+    pvalues/shifted_hirji.cpp
+    pvalues/pval.cpp
+    pvalues/pvalue_test_defs.cpp
+    ;
+if $(HAS_MEME_SOURCE_CODE) {
+    PVALUES_SRC +=
+        pvalues/meme.cpp
+        meme
+        ;
+}
+lib pvalues
+    :
+        $(PVALUES_SRC)
+        fast
+    ;
+exe test_pvalue_speeds
+    :   pvalues/test_pvalue_speeds.cpp pvalues
+        /boost/program_options//boost_program_options ;
+exe test_pval : pvalues/test_pval.cpp pvalues ;
+exe hirji_shifted : pvalues/hirji_shifted_main.cpp pvalues ;
+
+
+
+
+
+
+
+#
+# Python extensions
+#
+local PY_EXT_SOURCES =
+    pvalues
+    myrrh//myrrh_pylib
+    /boost/python//boost_python
+    /boost/system//boost_system
+    /site-config//google-cpu-profiler-if-release
+    ;
+
+cpp-pch steme_defs_pch : steme_defs_pch.h : <use>$(PY_EXT_SOURCES) ;
+cpp-pch steme_python_pch : steme_python_pch.h : <use>$(PY_EXT_SOURCES) ;
+
+local PY_EXT_REQS =
+    <variant>release:<linkflags>-Wl,-rpath,$(RELEASE_INSTALL_DIR)
+    <variant>debug:<linkflags>-Wl,-rpath,$(DEBUG_INSTALL_DIR)
+    <target-os>linux:<source>/site-config//rt
+    ;
+
+local NON_INDEX_SRCS =
+    module_stempy
+    python_utility
+    # python_meme
+    python_bs
+    python_llr_pvalues
+    ;
+
+local INDEX_SRCS =
+    module_index
+    python_descender
+    python_bg
+    python_data
+    python_em
+    python_find_best_w_mers
+    python_find_instances
+    python_markov
+    python_model
+    python_seqan
+    python_significance
+    python_start_finder
+    ;
+
+lib steme
+    :
+        python/steme.cpp
+    :
+        $(PY_EXT_REQS)
+    ;
+
+python-extension _stempy
+    : # sources
+        python/$(NON_INDEX_SRCS).cpp
+        steme
+        $(PY_EXT_SOURCES)
+        steme_defs_pch
+        steme_python_pch
+    :
+        $(PY_EXT_REQS)
+    ;
+
+python-extension _index
+    : # sources
+        python/$(INDEX_SRCS).cpp
+        steme
+        $(PY_EXT_SOURCES)
+        steme_defs_pch
+        steme_python_pch
+    :
+        <define>STEME_INDEX_MODULE_NAME=_index
+        $(PY_EXT_REQS)
+    ;
+
+for INDEX_SRC in $(INDEX_SRCS) {
+    obj $(INDEX_SRC)-genome
+        :
+            python/$(INDEX_SRC).cpp
+            steme_defs_pch
+            steme_python_pch
+        :
+            <define>STEME_INDEX_MODULE_NAME=_index_genome
+            <define>STEME_INDEX_MODULE_TYPE=1 # the genome spec
+            $(PY_EXT_REQS)
+            <source>/boost/python//boost_python
+        ;
+}
+python-extension _index_genome
+    : # sources
+        $(INDEX_SRCS)-genome
+        $(PY_EXT_SOURCES)
+        steme
+        steme_defs_pch
+        steme_python_pch
+    :
+        $(PY_EXT_REQS)
+    ;
+
+alias stempy : _stempy _index _index_genome steme ;
+
+
+
+
+
+#
+# Python sandbox
+#
+python-extension _sandbox
+    : # sources
+        python/module_sandbox.cpp
+        /boost/python//boost_python
+    ;
+explicit _sandbox ;
+
+
+
+#
+# Install
+#
+install lib_install
+    :
+        /boost/python//boost_python
+        /boost/system//boost_system
+        /boost/filesystem//boost_filesystem
+        /boost/date_time//boost_date_time
+        myrrh//myrrh_pylib
+        fast
+        pvalues
+        steme
+        meme
+    :
+        <variant>release:<location>$(RELEASE_INSTALL_DIR)
+        <variant>debug:<location>$(DEBUG_INSTALL_DIR)
+    ;
+
+install ext_install
+    :
+        _stempy
+        _index
+        _index_genome
+    :
+        <variant>release:<location>$(RELEASE_INSTALL_DIR)
+        <variant>debug:<location>$(DEBUG_INSTALL_DIR)
+        <install-dependencies>off
+    ;
+
+alias install : lib_install ext_install ;
+
+
+#
+# C++ tests
+#
+local TEST_SRC_FILES = [ glob test/*.cpp ] ;
+local TEST_SRCS = $(TEST_SRC_FILES:B) ;
+for TEST_SRC in $(TEST_SRCS) {
+    unit-test $(TEST_SRC)
+        :
+            steme_defs_pch
+            test/$(TEST_SRC).cpp
+            /site-config//rt
+            #/user-config//pthread
+            # /site-config//fast
+            fast
+            pvalues
+            /boost/system//boost_system
+            /boost/filesystem//boost_filesystem
+            /boost/test//boost_unit_test_framework/<link>static
+        :
+            <toolset>msvc:<variant>debug:<testing.launcher>=dbg.bat
+            #<define>BOOST_TEST_DYN_LINK
+            #<define>BOOST_TEST_MAIN
+        ;
+    #explicit $(TEST_SRC) ;
+}
+alias all_c_tests : $(TEST_SRCS) ;
+#explicit all_c_tests ;
+
+
+#
+# Python tests
+#
+local PY_TEST_FILES = [ glob ../python/stempy/test/test_*.py ] ;
+local PY_TESTS = $(PY_TEST_FILES:B) ;
+for PY_TEST in $(PY_TESTS) {
+    # create boost python test
+    local target = python_$(PY_TEST) ;
+    if "test_no_sites_in_bg" = $(PY_TEST) {
+        BUILD = "no" ; # takes too long in debug build
+    } else {
+        BUILD = "yes" ;
+    }
+    bpl-test $(target)
+        :   ../python/stempy/test/$(PY_TEST).py
+            _stempy _index _sandbox install 
+        :   <pythonpath>$(PROJECT_DIR)/../python
+            <pythonpath>$(PROJECT_DIR)/../../Python/Cookbook/python
+            <pythonpath>$(PROJECT_DIR)/../../Infpy/python
+            <variant>release:<pythonpath>$(PROJECT_DIR)/../../PyICL/Python
+            <variant>debug:<build>$(BUILD)
+        ;
+    explicit $(target) ;
+}
+# alias for all tests
+alias all_pytests : python_$(PY_TESTS) ;
+#explicit all_pytests ;
+
+
+#
+# All tests
+#
+alias all_tests : all_c_tests all_pytests ;
+
+
+#
+# Sandbox
+#
+local SANDBOX_DEPENDENCIES =
+    /boost/system//boost_system
+    /boost/regex//boost_regex
+    /site-config//rt
+    /site-config//google-cpu-profiler-if-release
+    ;
+
+for local file in [ glob sandbox/*.cpp ]
+{
+    local target = [ path.basename $(file) ] ;
+    exe $(target:B) : $(file) $(SANDBOX_DEPENDENCIES) ;
+    SANDBOX_TARGETS += $(target:B) ;
+}
+exe seqan_multiple_defs
+    :   sandbox/multiple_defs/translation_unit_1.cpp
+        sandbox/multiple_defs/translation_unit_2.cpp
+        $(SANDBOX_DEPENDENCIES) ;
+SANDBOX_TARGETS += seqan_multiple_defs ;
+alias sandbox : $(SANDBOX_TARGETS) ;
+#explicit sandbox $(SANDBOX_TARGETS) ;
+
+

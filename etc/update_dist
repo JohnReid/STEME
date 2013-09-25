@@ -1,0 +1,53 @@
+#!/bin/bash -e
+
+
+#
+# Configuration
+#
+PYPI_NAME=STEME
+DIR=www/STEME
+HOST=zemlinsky
+RSYNC="rsync --verbose  --progress --stats --compress --recursive --times --perms --links"
+
+
+#
+# Update the options documentation
+#
+PYTHONPATH=python/:$PYTHONPATH python python/scripts/create_options_docs >docs/source/options.rst
+
+
+#
+# Check everything is checked in
+#
+if [ "$(svn st)" != "" ]
+then
+  svn st
+  echo "You need to check in everything before updating distribution."
+  exit -1
+fi
+
+
+#
+# Update the documentation and upload to pypi and our web host
+#
+PYTHONPATH=python/:$PYTHONPATH python setup.py build_sphinx
+PYTHONPATH=python/:$PYTHONPATH python setup.py upload_sphinx
+scp index.html $HOST:$DIR/
+#scp docs/build/html/* $HOST:$DIR/docs/build/html/
+$RSYNC docs/build/html/* $HOST:$DIR/docs/build/html/
+
+
+#
+# Upload source build to pypi and our web host
+#
+python setup.py sdist upload --sign
+PACKAGE=$(ls -rt dist/*.tar.gz|tail -1) # get the latest package in dist/
+scp $PACKAGE $HOST:$DIR/dist/$(basename $PACKAGE)
+
+
+#
+# Remind user
+#
+echo "**************************************************************************"
+echo "* Now is a good time to update the release number in the python package. *"
+echo "**************************************************************************"

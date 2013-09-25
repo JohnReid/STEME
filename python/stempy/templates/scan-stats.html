@@ -1,0 +1,88 @@
+{% extends "wide-layout.html" %}
+{% block body %}
+        
+    {% if num_sites %}
+
+        <p>
+        <center>
+        <a href="#scores">Scores</a>
+        | <a href="#positions">Positions</a>
+        | <a href="#sequences">Sequences</a>
+        | <a href="#num-occurrences">Occurrences</a>
+        </center>
+        </p>
+        
+        <p>
+        <hr>
+        These scan statistics are for a scan of {{ num_seqs }} sequences from {{ dataset_name }}
+        averaging {{ '%.1f' % (num_bases / num_seqs) }} base pairs in length. There are
+        {{ num_sites }} predicted sites for {{ num_motifs }} motifs averaging 1 binding site every
+        {{ '%d' % (num_bases / num_sites) }} base pairs.
+        
+        <p>
+        <hr>
+        <h2 id="scores">Scores</h2>
+        <img src="scan-scores.png" alt="Scan scores image is missing!"/>
+        <img src="scan-legend.png" alt="Legend scores image is missing!"/>
+        <br>
+        The scores for the predicted sites segregated by motif. Each marker (point) represents one predicted site. 
+        The sites are sorted by Z-score. The
+        Z-score is an estimate of how confidently STEME predicts this site is a binding site model thinks a site is a binding site.
+        A Z-score of 1 would mean STEME is almost sure that the site is a binding site. The Z-score is calculated from how well the
+        site matches the motif and how well it fits STEME's background model.
+        The plot allows us to compare how strong each motif's predicted binding sites are. Vaguer motifs with lower information
+        contents tend to have difficulty achieving high Z-scores. In these cases a perfect match may not produce a high Z-score.
+        Also the plot allows us to get a rough feel for how many binding sites there are for each motif from the density of each 
+        motif's markers along the x-axis.
+        
+        <p>
+        <hr>
+        <h2 id="positions">Positions</h2>
+        <img src="scan-positions.png" alt="Scan positions image is missing!"/>
+        <img src="scan-legend-with-all.png" alt="Legend scores image is missing!"/>
+        <br>
+        The positions of the predicted sites in the sequences. Each marker represents a site. The y-axis represents how
+        close the site is to the start or end of the sequence it is in. The sites are sorted in the x-axis according to 
+        their y-value. This plot allows us to see if particular motifs have sites that cluster in the centre or beginning
+        or end of the sequences. For example, suppose a motif's scatter plot has a flat region in the centre. This would allow us
+        to see that this motif's sites have a bias towards the centre of the sequences. A scatter plot for uniformly
+        distributed sites would have a near constant gradient.
+        
+        <p>
+        <hr>
+        <h2 id="sequences">Sequences</h2>
+        <img src="scan-sequences.png" alt="Scan sequences image is missing!"/>
+        <img src="scan-legend.png" alt="Legend scores image is missing!"/>
+        <br>
+        <img src="scan-lengths.png" alt="Scan sequence lengths image is missing!"/>
+        <br>
+        The top plot shows the density of predicted sites for each sequence. Each sequence is represented as one x-value. The
+        sequences are presented in the same order that they are in the original STEME FASTA input file. Each 
+        marker represents the density of sites for a particular motif in that sequence. The density of sites is the number
+        of predicted sites per base pair in the sequence. This
+        plot allows us to see if there are certain sequences which have a concentration of a particular motif's sites. We use
+        the density of sites rather than a count to give a fair comparison between sequences of different lengths. The
+        bottom plot shows the sequence lengths. The lengths are scatter plotted in the same order as in the top plot (and in the
+        original input FASTA file), they are also line plotted in green in order of size.
+        
+        <p>
+        <hr>
+        <h2 id="num-occurrences">Number of occurrences</h2>
+        <img src="scan-occs-by-motif.png" alt="Scan number of occurrences by motif image is missing!"/>
+        <br>
+        The number of occurrences for each motif.
+
+    {% else %}
+        
+        <p>
+        <hr>
+        {{ num_seqs }} sequences from {{ dataset_name }}
+        averaging {{ '%.1f' % (num_bases / num_seqs) }} base pairs in length were scanned for sites.
+        No sites were predicted above the threshold for any of the motifs.
+        
+    {% endif %}
+    
+    <p>
+    <hr>
+  
+{% endblock %}

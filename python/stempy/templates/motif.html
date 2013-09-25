@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <center>
+    <h2>Motif {{ motif.idx }}</h2>
+    <p>
+  
+    log10 E-value = {{ '%.2f' % (motif.log_E_value / 2.3025850929940459) }}
+    <br>
+    <img src="{{ image_url }}" alt="Logo image is missing!"/>
+  </center>
+  
+{% endblock %}

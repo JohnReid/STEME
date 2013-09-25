@@ -1,0 +1,41 @@
+This package includes implementations for the sFFT, csFFT 
+and refine-csFFT algorithms and the memo-sFFT package (in C/C++) 
+described in the accompanying paper and is intended for
+compilation on a linux machine using g++.
+
+Comments:
+
+1. "make sFFT", "make refine-csFFT" and "make csFFT" produce the
+   programs "sFFT", "csFFT" and "refine-csFFT" respectively. 
+   "make MEtest" produces the program MEtest that can be 
+   used to test the memo-sFFT package. "make all" produces all the 
+   four programs. The default is to compile a version that uses the FFTW
+   package (see http://www.fftw.org/) and for this to work,
+   the FFTW package should be installed on your system and
+   the variable FFTW in the Makefile should be set to point
+   to the correct "lib" directory (and if the version is not
+   3.0, the Makefile should be modified suitably). To avoid
+   using the FFTW package, a version that uses Numerical Recipes 
+   (NR) code for computing FFTs can be compiled using the command
+   "make NR=1 bagFFT". Note that the FFTW versions tend to be
+   much more efficient than those using the NR code.
+
+2. Executing the programs without any parameters gives a description
+   of how to use them. The ouput of the programs is a list
+   of the parameters given to the program and the computed p-value
+   presented as a log-value and the actual p-value in parentheses.
+   Note that for the NR version of the program, the parameter Q 
+   should be a power of 2 and the program shall round up to the 
+   nearest power of 2 if this is not the case. Also note that the
+   FFTW version requires a wisdom file to be present in the directory
+   from which the programs are executed.
+
+3. "make lib" produces the library "libpvalue.a". To see how to use
+   this library see "entropy-test.cpp", "entropy-combined.h" and the HS_sFFT_lib 
+   rule in the Makefile.
+
+4. "make motifeval" produces the corresponding library for the memo-sFFT package
+   which can be used as shown in "me-test.cpp".
+
+5. Please send any comments, suggestions and bug reports via e-mail
+   to niranjan@umiacs.umd.edu

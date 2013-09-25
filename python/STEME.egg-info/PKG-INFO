@@ -1,0 +1,47 @@
+Metadata-Version: 1.0
+Name: STEME
+Version: 1.8.2
+Summary: STEME: an accurate efficient motif finder for large data sets.
+Home-page: http://sysbio.mrc-bsu.cam.ac.uk/johns/STEME/
+Author: John Reid
+Author-email: johnbaronreid@netscape.net
+License: BSD
+Description:  STEME
+        =======
+        
+        Accurate efficient motif finding in large data sets
+        ---------------------------------------------------
+        
+        STEME started life as an approximation to the Expectation-Maximisation algorithm for 
+        the type of model used in motif finders such as MEME. STEME’s EM approximation 
+        runs an order of magnitude more quickly than the MEME implementation for typical 
+        parameter settings. STEME has now developed into a fully-fledged motif finder in 
+        its own right.
+        
+        .. _MEME: http://meme.sdsc.edu/meme/intro.html
+        
+        
+        STEME's source code can be found at its `PyPI page`_. The latest version of STEME's documentation is 
+        at its `Python package page`_. An installation of STEME is available_ to run over the web.
+        
+        
+        .. _PyPI page: http://pypi.python.org/pypi/STEME/
+        .. _available : http://sysbio.mrc-bsu.cam.ac.uk/STEME/
+        .. _Python package page: http://packages.python.org/STEME/
+        
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: C++
+Classifier: Topic :: Scientific/Engineering
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Topic :: Utilities

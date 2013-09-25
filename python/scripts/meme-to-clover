@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+
+"""
+Convert a MEME format file of motifs into one suitable for Clover.
+"""
+
+
+import logging
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+import sys
+import numpy
+from stempy.meme_parse import do_parse_and_extract
+
+for motifs_filename in sys.argv[1:]:
+    logging.info('Reading motifs from: %s', motifs_filename)
+    extracted = do_parse_and_extract(open(motifs_filename).read())
+    clover_filename = motifs_filename + '.clover'
+    logging.info('Writing Clover format to: %s', clover_filename)
+    with open(clover_filename, 'w') as out:
+        for i, motif in enumerate(extracted.motifs):
+            logging.info('Motif %2d: %s', i, motif.name)
+            print >>out, '>%s' % motif.name
+            if motif.letter_probs:
+                counts = motif.letter_probs.values * motif.letter_probs.nsites
+                counts = numpy.rint(counts).astype(numpy.uint)
+                for row in counts:
+                    print >>out, ' '.join('%-6d' % c for c in row)

@@ -1,0 +1,38 @@
+if [ "$(uname -n)" == "hendrix" ]
+then
+  gcc_version=gcc-4.4.3
+  # export LD_LIBRARYPATH="/usr/local/gnu/lib64/:$LD_LIBRARY_PATH"
+else
+  gcc_version=gcc-4.4.1
+fi
+so_name=_stempy.so
+debug_dir=debug/python-debugging-on
+release_dir=release
+if [ /home/john/Dev/MyProjects/Bio/bin/MotifSearch/$gcc_version/$debug_dir/_stempy.so -nt /home/john/Dev/MyProjects/Bio/bin/MotifSearch/$gcc_version/$release_dir/_stempy.so ]
+then
+  version=$debug_dir
+  export PYTHON=/home/john/local/bin/python
+  export IPYTHON=/home/john/local/bin/ipython
+else
+  version=$release_dir
+  if [ -r /usr/bin/ipython2.5 ]
+  then
+    export PYTHON=/usr/bin/python2.5
+    export IPYTHON=/usr/bin/ipython2.5
+  else
+    export PYTHON=/usr/bin/python
+    export IPYTHON=/usr/bin/ipython
+  fi
+fi
+echo "Using $version version"
+#version=profile
+
+so_dir=/home/john/Dev/MyProjects/Bio/bin/MotifSearch/$gcc_version/$version
+so_file=$so_dir/$so_name
+
+export LD_LIBRARY_PATH="$so_dir:/usr/local/gnu/lib64:/home/john/Dev/MyProjects/myrrh/bin/$gcc_version/$version:/home/john/Dev/ThirdParty/boost/boost-trunk/bin.v2/libs/python/build/$gcc_version/$version:/home/john/Dev/ThirdParty/boost/boost-trunk/bin.v2/libs/system/build/$gcc_version/$version:/home/john/local/bin:/home/john/local/lib:/home/john/local/lib32:/home/john/local/lib64:/home/john/Dev/bin:$LD_LIBRARY_PATH"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
+export PYTHONPATH="$so_dir:$PYTHONPATH:../python"
+echo "PYTHONPATH=$PYTHONPATH"
+

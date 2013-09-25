@@ -1,0 +1,68 @@
+Install virtual environment in which to run STEME
+
+    sudo virtualenv --system-site-packages /usr/local/STEME-virtualenv/
+
+
+
+Make necessary directories
+
+    sudo mkdir -p /var/lib/STEME
+    sudo mkdir -p /var/www/STEME
+    sudo mkdir -p /etc/STEME
+    sudo chown -R www-data:www-data /var/lib/STEME /var/www/STEME /etc/STEME
+
+
+
+Add following to `/etc/apache2/sites-available/default` inside the VirtualHost 
+
+    WSGIDaemonProcess STEME user=www-data group=www-data threads=20
+    WSGIScriptAlias /STEME /var/www/STEME/STEME.wsgi
+    <Directory /var/www/STEME>
+        WSGIProcessGroup STEME
+        WSGIApplicationGroup %{GLOBAL}
+        Order deny,allow
+        Allow from all
+    </Directory>
+    AliasMatch ^/STEME/result/(.*) /var/lib/STEME/jobs/$1
+    <Directory /var/lib/STEME/jobs>
+        Order deny,allow
+        Allow from all
+    </Directory>
+
+and add this before the VirtualHost section
+
+    WSGIPythonHome /usr/local/STEME-virtualenv
+
+
+Install necessary python libraries
+
+    sudo apt-get install python-psutil
+    sudo /usr/local/STEME-virtualenv/bin/pip install flask
+    sudo /usr/local/STEME-virtualenv/bin/pip install Flask-SQLAlchemy
+    sudo /usr/local/STEME-virtualenv/bin/pip install sqlalchemy
+    sudo /usr/local/STEME-virtualenv/bin/pip install Flask-WTF
+
+
+
+Download STEME-?.?.?.tar.gz from http://pypi.python.org/pypi/STEME. Unpack and cd into directory. Configure
+
+    sudo /usr/local/STEME-virtualenv/bin/python configure.py --boost-inc-dir= --boost-lib-dir= --seqan-dir=
+
+
+
+Build and install
+
+    sudo /usr/local/STEME-virtualenv/bin/python setup.py install
+
+
+
+Copy application settings and then edit to configure
+
+    sudo cp python/stemewebapp/default_settings.py /etc/STEME/settings.py
+    sudo chown www-data:www-data /etc/STEME/settings.py
+
+
+
+Create the database
+
+    sudo -u www-data STEMEWEBAPP_SETTINGS=/etc/STEME/settings.py /usr/local/STEME-virtualenv/bin/stemewebapp-create-db

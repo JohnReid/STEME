@@ -1,0 +1,44 @@
+#!/usr/bin/env python
+#
+# Copyright John Reid 2011, 2012
+#
+
+"""
+Code to run STEME algorithm.
+"""
+
+#
+# Set up the logging
+#
+import logging
+import sys
+from cookbook.script_basics import setup_logging
+setup_logging(__file__, level=logging.INFO)
+
+#
+# Force matplotlib to not use any Xwindows backend.
+#
+import matplotlib
+matplotlib.use('Agg')
+
+import stempy
+
+
+#
+# parse options
+#
+sys.argv = [a.encode(sys.stdin.encoding or 'ascii') for a in sys.argv]
+options, args = stempy.parse_options(stempy.add_options)
+if len(args) != 1:
+    raise RuntimeError('USAGE: %s <fasta filename>' % sys.argv[0])
+fasta = args[0].encode()
+
+#
+# run STEME
+#
+algorithm = stempy.Algorithm(options)
+stempy.turn_on_google_profiling_if_asked_for(options)
+try:
+    algorithm(fasta)
+finally:
+    stempy.turn_off_google_profiling_if_asked_for(options)

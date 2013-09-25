@@ -1,0 +1,1 @@
+sudo -u www-data STEMEWEBAPP_SETTINGS=/etc/STEME/settings.py /usr/local/STEME-virtualenv/bin/stemewebapp-remove-job <job-id>

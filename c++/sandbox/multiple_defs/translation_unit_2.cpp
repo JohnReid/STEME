@@ -1,0 +1,1 @@
+#include <seqan/index.h>

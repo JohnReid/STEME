@@ -1,0 +1,11 @@
+#. ./env
+PYTHON=$HOME/local/python-dbg-2.7.3/bin/python2.7
+BASENAME=$(basename $1 .py)
+ARGS+=" --suppressions=/home/john/local/src/Python-2.7.3/Misc/valgrind-python.supp"
+#ARGS+=" --suppressions=test_steme_accuracy.supp"
+#ARGS+=" --suppressions=steme-pwm-scan.supp"
+ARGS+=" --gen-suppressions=all --log-file=output/$BASENAME.supp"
+#ARGS+=" --db-attach=yes"
+ARGS+=" --leak-check=yes"
+ARGS+=" --track-origins=yes"
+valgrind $ARGS $PYTHON "$@"

@@ -1,0 +1,5 @@
+#!/bin/bash -e
+
+cd c++
+b2 -q -j60 install
+b2 -q -j60 python_test_run_steme

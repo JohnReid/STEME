@@ -1,0 +1,9 @@
+# Go to STEME's PyPi page and get URL for latest package
+cd /usr/local/src
+sudo wget <STEME package URL>
+sudo tar zxf STEME-<new version>.tar.gz
+cd STEME-<new version>
+cp ../STEME-<last version>/siteconf.py .
+# optionally update seqan svn version and/or boost version
+sudo /usr/local/STEME-virtualenv/bin/python setup.py build
+sudo /usr/local/STEME-virtualenv/bin/python setup.py install

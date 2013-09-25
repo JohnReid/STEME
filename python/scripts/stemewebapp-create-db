@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+#
+# Copyright John Reid 2012
+#
+
+"""
+Creates the database for the STEME web application.
+"""
+
+from stemewebapp.models import db
+db.create_all()

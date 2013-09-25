@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% set active_page = "listjobs" %}
+{% block body %}
+
+  {% for job in jobs %}
+    <p>
+    {% if job.completed %}
+      {% if check_job_successful(job) %}
+        {{ named_job(job) }} has completed.
+      {% else %}
+        {{ named_job(job, link=False) }} <a style="color:#CC0000" href="{{ job_log_url(job.uuid) }}" type="text/plain">did not</a> complete.
+      {% endif %}
+    {% else %}
+      {{ named_job(job, link=False) }} <a href="{{ job_log_url(job.uuid) }}" type="text/plain">is running</a>.
+    {% endif %}    
+  {% endfor %}
+  
+{% endblock %}

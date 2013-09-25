@@ -1,0 +1,5 @@
+* Make sure code compiles and tests OK: bjam -q release all_tests
+  OR at a minimum that it installs: bjam -q release install
+* Update version number in python/stempy/VERSION
+* Make sure code is checked in: 'svn ci -m"Your message"'
+* Run etc/update_dist

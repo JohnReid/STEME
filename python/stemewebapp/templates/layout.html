@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<title>STEME</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+
+{% block javascript %}
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-26291968-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+{% endblock %}
+
+
+{% set navigation_bar = [
+    (url_for('home'), 'home', 'Home'),
+    (url_for('new_job'), 'newjob', 'New job'),
+    (url_for('list_jobs'), 'listjobs', 'List jobs')
+] -%}
+
+
+{% set active_page = active_page|default('home') -%}
+
+
+<div id="container" width="20px">
+
+  <div style="text-align: center; padding: 10px 10px 15px 15px">
+     <a href="{{ url_for('home') }}">
+       <img src="{{ url_for('static', filename='logo.png') }}" border="0" alt="STEME"/>
+     </a>
+  </div>
+
+
+  <div id="navigation" align="center">
+    {% for href, id, caption in navigation_bar %}
+      <a {% if id == active_page %} class="active"{% endif %} href="{{ href|e }}">{{ caption|e }}</a>&nbsp
+    {% endfor %}
+  </div>
+  <p>
+
+  
+  <div id="page" class=page>
+    {% for message in get_flashed_messages() %}
+      <div class=flash>{{ message }}</div>
+      <p>
+    {% endfor %}
+    
+    {% block body %}{% endblock %}
+  </div>
+
+  
+</div>
+  

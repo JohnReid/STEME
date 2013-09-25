@@ -1,0 +1,32 @@
+GDB_CMDS=gdb-cmds.tmp
+FASTA=../fasta/test.fa
+ARGS="$FASTA \
+        -oc output/meme-output \
+        -dna \
+        -mod anr \
+        -nmotifs 1 \
+        -w 10 \
+        -revcomp \
+        -nomatrim \
+        -spmap uni -spfuzz 0.5"
+
+cat <<EOF >$GDB_CMDS
+file /home/john/local/bin/meme_d.bin
+set breakpoint pending on
+#b main
+#b subseq7.c:262
+#b create_spoint_matrix
+b init_theta_1
+#b get_pY
+#b get_max
+#b score_llr_pop
+#b init.c:832
+#commands
+#b get_llr_pv
+#c
+#end
+run $ARGS
+EOF
+
+gdb -x $GDB_CMDS && rm $GDB_CMDS
+

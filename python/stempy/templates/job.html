@@ -1,0 +1,140 @@
+{% extends "layout.html" %}
+{% block body %}
+
+  <p>
+  <center>
+  <a href="#motifs">Motifs</a>
+  | <a href="#sequences">Sequences</a>
+  | <a href="#outputs">Other outputs</a>
+  | <a href="#references">References</a>
+  | <a href="#runtime">Runtime</a>
+  | <a href="#glossary">Glossary</a>
+  </center>
+  </p>
+  
+  <div id="motifs">
+  {% for motif, image_url, eps_url in motifs %}
+    <div id="motif {{ motif.idx }}">
+    <hr>
+    <h2>Motif {{ motif.idx }}</h2>
+    log10 <a href="#E-value">E-value</a> = {{ '%.2f' % (motif.log_E_value / 2.3025850929940459) }}<br>
+    Motif built from {{ motif.num_sites }} sites.<br>
+    Motif predicts {{ motif.predictions.__len__() }} 
+      sites in {{ num_bases }} bases 
+      from {{ num_sequences }} input sequences 
+      {% if motif.input_stats.count %}
+        ({{ '%.0f' % (motif.input_stats.num_bases / motif.input_stats.count) }} bp/site)
+      {% endif %}
+      .<br>
+    {% if bg_num_bases %}
+      Motif predicts {{ motif.bg_stats.count }} 
+        sites in {{ bg_num_bases }} bases 
+        from {{ bg_num_sequences }} background sequences 
+      {% if motif.bg_stats.count %}
+        ({{ '%.0f' % (motif.bg_stats.num_bases / motif.bg_stats.count) }} bp/site)
+      {% endif %}
+      .<br>
+      {% if not motif.bg_stats.count %}
+        The input has an infinite enrichment of predictions over the background.<br>
+      {% else %}
+        The input has a {{ '%.1f' % calc_rel_enrichment(num_bases, bg_num_bases, motif) }}-fold enrichment of predictions per base over the background.<br>
+      {% endif %}
+    {% endif %}
+    <img src="{{ image_url }}" alt="Logo image is missing!"/><br>
+    <a href="{{ eps_url }}">Download</a> publication quality logo in Encapsulated PostScript format.<br>
+    </div>
+    <p>
+  {% endfor %}
+  <hr>
+  </div>
+  
+  
+  
+  
+  <p>
+  <h2 id="sequences">Sequences</h2>
+  Read {{ num_bases }} bases from {{ num_sequences }} input sequences.
+  {{ '%.1f%%' % (unknown * 100) }} of bases were unknown.
+  Other bases were distributed as:
+  <ul class="no-bullet">
+    <li>A = {{ '%.1f%%' % (freqs[0] * 100) }}
+    <li>C = {{ '%.1f%%' % (freqs[1] * 100) }}
+    <li>G = {{ '%.1f%%' % (freqs[2] * 100) }}
+    <li>T = {{ '%.1f%%' % (freqs[3] * 100) }}
+  </ul>
+  
+  {% if bg_num_bases %}
+    <p>
+    Read {{ bg_num_bases }} bases from {{ bg_num_sequences }} background sequences. 
+    {{ '%.1f%%' % (bg_unknown * 100) }} of bases were unknown.
+    Other bases were distributed as:
+    <ul class="no-bullet">
+      <li>A = {{ '%.1f%%' % (bg_freqs[0] * 100) }}
+      <li>C = {{ '%.1f%%' % (bg_freqs[1] * 100) }}
+      <li>G = {{ '%.1f%%' % (bg_freqs[2] * 100) }}
+      <li>T = {{ '%.1f%%' % (bg_freqs[3] * 100) }}
+    </ul>
+  {% endif %}
+
+
+  
+  <p>
+  <h2 id="outputs">Other outputs</h2>
+  {% if tomtom_url %}
+    View <a href="{{ tomtom_url }}">TOMTOM output</a> that compares the discovered motifs to known motifs.
+    <br>
+  {% endif %}
+  {% if meme_like_output %}
+    View <a href="{{ meme_like_output }}" type="text/plain">MEME-like output</a> which can be used
+    as input to downstream tools in the <a href="http://meme.sdsc.edu/">MEME suite</a>.
+    <br>
+  {% endif %}
+  View <a href="{{ logfile }}" type="text/plain">log file</a>.
+
+
+
+  <p>
+  <h2 id="references">References</h2>  
+  STEME's home page can be found at <a href="http://sysbio.mrc-bsu.cam.ac.uk/johns/STEME/">sysbio.mrc-bsu.cam.ac.uk/johns/STEME/</a>.
+  If you find STEME useful, please cite:
+  <ul class="no-bullet">
+    <li>John E. Reid and Lorenz Wernisch</li>
+    <li><a href="http://nar.oxfordjournals.org/citmgr?gca=nar;gkr574v1">STEME: efficient EM to find motifs in large data sets</a></li>
+    <li>Nucl. Acids Res. (2011) first published online July 23, 2011 doi:10.1093/nar/gkr574</li>	
+  </ul>
+  If you have any questions about STEME or problems using STEME please 
+  <a href="mailto:john.reid@mrc-bsu.cam.ac.uk?Subject=STEME question">email</a>.
+  
+  
+  <p>
+  <h2 id="runtime">Runtime</h2>  
+  STEME (version {{ version }}) was called with these <a href="options.html">options</a>.
+  The calculation took {{ total_duration_string }} and completed on {{ completion_date_time }}.
+  <ul class="no-bullet">
+  {% for msg, duration in timings %}
+    <li>{{ '%.1f' % duration }} seconds ({{ '%.0f%%' % (100*duration/total_duration) }} of total) to {{ msg }}</li>
+  {% endfor %}
+  </ul>
+  
+
+  
+  
+  <p>
+  <h2 id="glossary">Glossary</h2>
+  
+  <p>
+  <a name="E-value"><h3>E-value</h3></a>
+  The E-value quantifies the statistical significance of the motif. The best motifs have a smaller E-value. The E-value is calculated
+  from the <a href="#LLR">log-likelihood ratio</a> (LLR), width, number of sites of the motif, the frequencies of the bases in the 
+  input sequences and the size of the input. The E-value is an estimate of the expected number of motifs with a higher LLR and the 
+  same width and number of sites that MEME would find if it were given random sequences that had the same background frequencies.
+  On large data sets the E-value has a very wide range so STEME presents the base-10 logarithm of the E-value to avoid 
+  overflows and underflows.
+    
+  <p>
+  <a name="LLR"><h3>Log-likelihood ratio</h3></a>
+  The log-likelihood ratio is a statistic that quantifies how different the binding sites of a motif are from the background
+  distribution. It is the logarithm of the ratio of the likelihoods of the motif's binding sites under two distributions:  
+  the motif distribution and the background distribution.
+  
+{% endblock %}

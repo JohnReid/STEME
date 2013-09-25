@@ -1,0 +1,3 @@
+scp hendrix:Dev/MyProjects/Bio/MotifSearch/run-dir/*-results.tar.gz .
+scp hendrix:Dev/MyProjects/Bio/MotifSearch/run-dir/*-results.txt .
+scp hendrix:Dev/MyProjects/Bio/MotifSearch/run-dir/output/meme/meme.prof* output/meme

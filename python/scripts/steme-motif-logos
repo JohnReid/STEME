@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+#
+# Copyright John Reid 2012, 2013
+#
+
+"""
+Parses a motif file and creates a reStructuredText file with
+the information and logos.
+"""
+
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s")
+import os
+import stempy
+from stempy.meme_parse import do_parse_and_extract
+from optparse import OptionParser
+
+
+def print_heading(out, heading, underline):
+    print >>out, heading
+    print >>out, underline * len(heading.strip())
+    print >>out
+
+usage = 'USAGE: %prog [options] <motifs filename>'
+parser = OptionParser(usage=usage)
+parser.add_option(
+    "-o",
+    "--output-dir",
+    default='.',
+    help="Output results to directory: DIR",
+    metavar="DIR"
+)
+options, args = parser.parse_args()
+stempy.ensure_dir_exists(options.output_dir)
+
+
+motifs_filename = args[0]
+extracted = do_parse_and_extract(open(motifs_filename).read())
+out_filename = os.path.join(options.output_dir, 'motifs.rst')
+with open(out_filename, 'w') as out:
+    logging.info('File: %s', motifs_filename)
+    print_heading(out, 'Motifs', '-')
+    print >>out, 'Filename = %s\n' % motifs_filename
+    print >>out, 'Alphabet = %s\n' % extracted.alphabet
+    print >>out, 'Background frequencies = %s\n' % extracted.back_freqs
+    print >>out, 'Strands = %s\n' % ' '.join(extracted.strands)
+    for i, motif in enumerate(extracted.motifs):
+        logging.info('Motif %2d: %s', i, motif.name)
+        print_heading(
+            out,
+            '%d: %s%s' % (
+                i, motif.name,
+                motif.altname and ' (%s)' % motif.altname or ''),
+            '-')
+
+        if motif.letter_probs:
+            # print_heading(out, 'Letter probabilities', '~')
+            print >>out, 'w = %d; ' % motif.letter_probs.w
+            print >>out, '# sites = %d; ' % motif.letter_probs.nsites
+            if None != motif.letter_probs.E:
+                print >>out, 'E = %f; ' % motif.letter_probs.E
+            logo_tag = 'motif-%s' % motif.name
+            stempy.logo(
+                motif.letter_probs.values,
+                logo_tag,
+                d=options.output_dir,
+                make_png=True,
+                make_eps=False,
+                write_title=False,
+                show_fineprint=False)
+            print >>out, '\n.. image:: logo-%s.png' % logo_tag
+            print >>out

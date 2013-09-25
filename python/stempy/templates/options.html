@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% macro log_option_list(name, option_list, options) -%}
+  <tr><td colspan="3"><hr></td></tr>
+  <tr><td colspan="3" class="option-h2">{{ name }}</td></tr>
+  {% for option in option_list %}
+    {% if option.dest %}
+      {% set value = str(getattr(options, option.dest)) %}
+      {% set default = value == str(getattr(default_options, option.dest)) %}
+      <tr class="{{ loop.cycle('odd', 'even') }}">
+        <td>{{ option.dest }}</td>
+        <td>{% if not default %}<strong>{% endif %}{{ value }}{% if not default %}</strong>{% endif %}</td>
+        <td>{{ option.help }}</td>
+      </tr>
+    {% endif %}
+  {% endfor %}
+  <tr></tr>
+{%- endmacro %}
+
+
+<table>
+{{ log_option_list('Options that differ from the defaults are emphasised', option_parser.option_list, options) }}
+{% for option_group in option_parser.option_groups %}
+  {{ log_option_list(option_group.title + ' options', option_group.option_list, options) }}
+{% endfor %}
+</table>
+
+{% endblock %}
+
