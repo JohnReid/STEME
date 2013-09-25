@@ -358,9 +358,9 @@ for PY_TEST in $(PY_TESTS) {
         :   ../python/stempy/test/$(PY_TEST).py
             _stempy _index _sandbox install
         :   <pythonpath>$(PROJECT_DIR)/../python
-            <pythonpath>$(PROJECT_DIR)/../../Python/Cookbook/python
-            <pythonpath>$(PROJECT_DIR)/../../Infpy/python
-            <variant>release:<pythonpath>$(PROJECT_DIR)/../../PyICL/Python
+            <pythonpath>$(PROJECT_DIR)/../../Cookbook/python
+            <pythonpath>$(PROJECT_DIR)/../../infpy/python
+            <variant>release:<pythonpath>$(PROJECT_DIR)/../../pyicl/Python
             <variant>debug:<build>$(BUILD)
         ;
     explicit $(target) ;
