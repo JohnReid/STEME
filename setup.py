@@ -228,7 +228,7 @@ def main():
                                         'templates/newjob.html',
                                     ],
                                 },
-        include_package_data  = False,
+        include_package_data  = True,
         install_requires      = ['cookbook', 'numpy', 'matplotlib'],
         scripts               = [
                                     'python/scripts/steme',

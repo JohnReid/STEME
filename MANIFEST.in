@@ -5,3 +5,8 @@ exclude run-dir/*
 exclude run-dir/*/*
 exclude run-dir/*/*
 exclude python/scripts/*.py
+
+include configure.py
+include aksetup_helper.py
+include README_SETUP.txt
+include README.txt
