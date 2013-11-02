@@ -11,4 +11,4 @@ include aksetup_helper.py
 include README_SETUP.txt
 include README.txt
 
-recursive-include c++/hmm *.h *.cpp
+recursive-include c++ *.h *.hpp *.cpp *.c wisdom
