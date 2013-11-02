@@ -10,3 +10,5 @@ include configure.py
 include aksetup_helper.py
 include README_SETUP.txt
 include README.txt
+
+recursive-include c++/hmm *.h *.cpp
