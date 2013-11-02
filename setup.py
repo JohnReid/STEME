@@ -229,7 +229,7 @@ def main():
                                     ],
                                 },
         include_package_data  = False,
-        install_requires      = ['cookbook', 'numpy'],
+        install_requires      = ['cookbook', 'numpy', 'matplotlib'],
         scripts               = [
                                     'python/scripts/steme',
                                     'python/scripts/steme-em',
