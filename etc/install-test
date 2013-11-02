@@ -9,8 +9,9 @@ virtualenv $ENV
 pip install numpy
 
 PACKAGE=stempy
+PYPI=STEME
 REPO=STEME
-UNINSTALL="pip uninstall --yes $PACKAGE"
+UNINSTALL="pip uninstall --yes $PYPI"
 
 # Install local version
 python setup.py install
