@@ -56,7 +56,7 @@
 // choose maximum Markov model order if not decided already.
 // N.B. This is an upper limit so setting this to 5 will make order-4 the largest usable order
 #ifndef STEME_MAX_MARKOV_MODEL_ORDER
-# define STEME_MAX_MARKOV_MODEL_ORDER 7
+# define STEME_MAX_MARKOV_MODEL_ORDER 8
 #endif // STEME_MAX_MARKOV_MODEL_ORDER
 
 
