@@ -1,3 +1,5 @@
+install-test-env
+siteconf.py
 build
 dist
 distribute-0.6.19-py2.6.egg

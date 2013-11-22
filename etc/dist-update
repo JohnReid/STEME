@@ -13,23 +13,27 @@ RSYNC="rsync --verbose  --progress --stats --compress --recursive --times --perm
 #
 # Update the options documentation
 #
-PYTHONPATH=python/:$PYTHONPATH python python/scripts/create_options_docs >docs/source/options.rst
+PYTHONPATH=python/:$PYTHONPATH \
+    python python/scripts/create_options_docs >docs/source/options.rst
 
 
 #
 # Check everything is checked in
 #
-if [ "$(svn st)" != "" ]
+if ! git st | grep "working directory clean"
 then
-  svn st
-  echo "You need to check in everything before updating distribution."
-  exit -1
+    git st
+    echo "*************************************************************"
+    echo "You need to check in everything before updating distribution."
+    echo "*************************************************************"
+    exit -1
 fi
 
 
 #
 # Update the documentation and upload to pypi and our web host
 #
+pip install sphinx sphinx-pypi-upload
 PYTHONPATH=python/:$PYTHONPATH python setup.py build_sphinx
 PYTHONPATH=python/:$PYTHONPATH python setup.py upload_sphinx
 scp index.html $HOST:$DIR/

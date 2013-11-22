@@ -36,7 +36,7 @@ extensions = [
           'sphinx.ext.todo',
           'sphinx.ext.pngmath',
           'ipython_console_highlighting',
-          'inheritance_diagram',
+          # 'inheritance_diagram',
           'numpydoc']
 
 # Add any paths that contain templates here, relative to this directory.

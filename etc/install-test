@@ -1,0 +1,28 @@
+#!/bin/bash -ex
+
+ENV=install-test-env
+[ ! -d $ENV ]
+virtualenv $ENV
+. $ENV/bin/activate
+pip install numpy
+
+PACKAGE=stempy
+PYPI=STEME
+REPO=STEME
+UNINSTALL="pip uninstall --yes $PYPI"
+
+# Install from git
+pip install git+https://github.com/JohnReid/$REPO.git
+python -c "import $PACKAGE"
+$UNINSTALL
+
+# Install from PyPI
+pip install $PYPI
+python -c "import $PACKAGE"
+$UNINSTALL
+$UNINSTALL
+
+# Install local version
+python setup.py install
+python -c "import $PACKAGE"
+

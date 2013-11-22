@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 #
-# Copyright John Reid 2010, 2011, 2012
+# Copyright John Reid 2010, 2011, 2012, 2013
 #
 
 """
-distutils setup script for STEME. Adapted from http://git.tiker.net/pyublas.git/tree.
+setuptools setup script for STEME.
+Adapted from http://git.tiker.net/pyublas.git/tree.
 """
 
 import os, sys
@@ -13,6 +14,7 @@ import os, sys
 # is it a python debug build?
 _python_debug_build = hasattr(sys, "gettotalrefcount")
 _build = _python_debug_build and 'debug' or 'release'
+
 
 def read(*fnames):
     """
@@ -22,7 +24,6 @@ def read(*fnames):
     string in below ...
     """
     return open(os.path.join(os.path.dirname(__file__), *fnames)).read()
-
 
 
 def get_config_schema():
@@ -38,11 +39,12 @@ def get_config_schema():
         make_boost_base_options() + [
             BoostLibraries("python"),
             Option("SEQAN_DIR"),
-            StringListOption("CXXFLAGS", [], help="Any extra C++ compiler options to include"),
-            StringListOption("LDFLAGS", [], help="Any extra linker options to include"),
+            StringListOption(
+                "CXXFLAGS", [], help="Any extra C++ compiler options to include"),
+            StringListOption(
+                "LDFLAGS", [], help="Any extra linker options to include"),
         ]
     )
-
 
 
 def main():
@@ -56,12 +58,11 @@ def main():
     INCLUDE_DIRS = [
         'c++',
         'c++/include',
-        'c++/myrrh',
+        'c++/hmm/myrrh',
         'c++/hmm',
         'c++/indexing_suite_v2',
         'c++/FAST',
-        os.path.join(conf['SEQAN_DIR'], 'core', 'include'),
-        os.path.join(conf['SEQAN_DIR'], 'extras', 'include'),
+        os.path.join(conf['SEQAN_DIR'], 'include'),
     ] + conf['BOOST_INC_DIR']
     LIBRARY_DIRS = conf['BOOST_LIB_DIR']
     LIBRARIES = conf['BOOST_PYTHON_LIBNAME'] + ['fftw3']
@@ -76,7 +77,8 @@ def main():
         ("NDEBUG"                , None),
     ]
 
-    # need to link against librt otherwise get an undefined aio_cancel error or somesuch.
+    # need to link against librt otherwise get an undefined aio_cancel
+    # error or somesuch.
     if 'linux' in sys.platform:
         LIBRARIES.append('rt')
 
@@ -103,7 +105,7 @@ def main():
     # C++ extensions
     #
     lib_srcs = [
-        'c++/myrrh/src/python/multi_array_to_numpy.cpp',
+        'c++/hmm/myrrh/src/python/multi_array_to_numpy.cpp',
         'c++/FAST/HS.cpp',
         'c++/FAST/motif_evaluator.cpp',
         'c++/FAST/theta_fns.cpp',
@@ -226,8 +228,8 @@ def main():
                                         'templates/newjob.html',
                                     ],
                                 },
-        include_package_data  = False,
-        install_requires      = ['distribute', 'cookbook'],
+        include_package_data  = True,
+        install_requires      = ['cookbook', 'numpy', 'matplotlib'],
         scripts               = [
                                     'python/scripts/steme',
                                     'python/scripts/steme-em',
