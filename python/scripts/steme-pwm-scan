@@ -189,7 +189,7 @@ start_time = time.time()
 # Parse options and arguments from command line
 #
 sys.argv = [a.encode(sys.stdin.encoding or 'ascii') for a in sys.argv]
-parser = OptionParser()
+parser = OptionParser(usage='USAGE: %prog [options] motifs-file fasta-file')
 parser.add_option(
     "--google-profile",
     action="store_true",
@@ -259,7 +259,7 @@ logging.getLogger('').addHandler(log_file_handler)
 #
 if len(args) != 2:
     raise RuntimeError(
-        'USAGE: %s <options> motifs-file fasta-file', sys.argv[0])
+        'USAGE: %s [options] motifs-file fasta-file', sys.argv[0])
 motifs_file = args.pop(0)
 fasta_file = args.pop(0)
 

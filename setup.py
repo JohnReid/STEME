@@ -57,11 +57,11 @@ def main():
 
     INCLUDE_DIRS = [
         'c++',
-        'c++/include',
-        'c++/hmm/myrrh',
-        'c++/hmm',
-        'c++/indexing_suite_v2',
-        'c++/FAST',
+        os.path.join('c++', 'include'),
+        os.path.join('c++', 'hmm', 'myrrh'),
+        os.path.join('c++', 'hmm'),
+        os.path.join('c++', 'indexing_suite_v2'),
+        os.path.join('c++', 'FAST'),
         os.path.join(conf['SEQAN_DIR'], 'include'),
     ] + conf['BOOST_INC_DIR']
     LIBRARY_DIRS = conf['BOOST_LIB_DIR']

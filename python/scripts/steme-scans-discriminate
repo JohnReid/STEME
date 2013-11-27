@@ -1,0 +1,191 @@
+#!/usr/bin/env python
+#
+# Copyright John Reid 2012
+#
+
+"""
+Compares two (or more) scans using a LASSO regression to find which motifs
+discriminate them.
+"""
+
+import logging
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger('')
+
+from optparse import OptionParser
+from collections import defaultdict
+import os
+import numpy
+import cPickle
+import sys
+from itertools import chain, repeat
+from stempy.scan import parse_occurrences, load_occurrences
+
+import rpy2.robjects as R
+from rpy2.robjects.packages import importr
+import rpy2.robjects.lib.ggplot2 as ggplot2
+glmnet = importr("glmnet")
+matrix = importr("Matrix")
+plyr = importr("plyr")
+rocr = importr("ROCR")
+grdevices = importr('grDevices')
+names = R.r['names']
+asmatrix = R.r['as.matrix']
+plot = R.r['plot']
+save = R.r['save']
+prod = R.r['prod']
+dim = R.r['dim']
+print_ = R.r['print']
+nnzero = R.r['nnzero']
+replaceNA = R.r('function(x) { x[is.na(x)] <- 0; return(x) }')
+
+parser = OptionParser(
+    usage="%prog [options] <scan-seq-centric.csv> <scan-seq-centric.csv> ...",
+    description="""
+Discriminates between scans using a LASSO logistic regression.
+""",
+)
+parser.add_option(
+    "-o",
+    "--output-dir",
+    default="scans-discriminate",
+    help="Write output to OUTPUTDIR.",
+    metavar="OUTPUTDIR"
+)
+parser.add_option(
+    '--type-measure',
+    default="auc",
+    help="Use TYPEMEASURE as loss to use for cross-validation. Can be deviance or auc (default).",
+    metavar="TYPEMEASURE"
+)
+parser.add_option(
+    '--lower-limits',
+    type='float',
+    default=None,
+    help="Bound the coefficients below by LOWERLIMITS.",
+    metavar="LOWERLIMITS"
+)
+options, scan_stats = parser.parse_args()
+if 2 > len(scan_stats):
+    logger.warning('Must have at least two scan statistics files')
+    parser.print_usage()
+    sys.exit(-1)
+
+
+def output_file(filename):
+    return os.path.join(options.output_dir, filename)
+
+#
+# Now we know where we will write output to, start a log file
+#
+if not os.path.exists(options.output_dir):
+    os.makedirs(options.output_dir)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+log_file_handler = logging.FileHandler(
+    os.path.join(options.output_dir, 'steme-scans-discriminate.log'), mode='w')
+log_file_handler.setFormatter(formatter)
+log_file_handler.setLevel(logging.INFO)
+logger.addHandler(log_file_handler)
+
+
+#
+# Load scan statistics
+#
+def loadstats(filename):
+    logger.info('Loading statistics from: %s', filename)
+    return R.r['read.csv'](filename, header=True)
+stat_dfs = map(loadstats, scan_stats)
+
+
+#
+# Join into one data frame
+#
+logger.info('Joining data')
+all_df = plyr.join(*stat_dfs, by="ID", type="full", match="first")
+num_motifs = (all_df.ncol - 4) / 2
+cols = R.IntVector(xrange(6, all_df.ncol+1, 2))
+x = all_df.rx(cols)
+assert len(x) == num_motifs
+x = replaceNA(x)
+x = asmatrix(x)
+logger.info('Have %d motifs', x.ncol)
+logger.info('Have %d sequences', x.nrow)
+logger.info('%.1f%% entries of X are non-zero', 100 * nnzero(x)[0] / prod(dim(x))[0])
+sparsex = matrix.Matrix(x, sparse=True)
+
+
+#
+# Create response: a different level for each set of statistics from the
+# input
+#
+logger.info('Creating responses')
+y = R.r['factor'](R.IntVector(
+    list(chain(*[repeat(i, df.nrow) for i, df in enumerate(stat_dfs)]))))
+
+
+#
+# Cross-validate to find suitable lambda
+#
+logger.info('Cross-validating Lasso GLM')
+kwargs = {
+    "standardize": False,
+    "family": "binomial",
+    "type.measure": options.type_measure,
+}
+if options.lower_limits is not None:
+    kwargs["lower.limits"] = options.lower_limits
+fit_cv = glmnet.cv_glmnet(sparsex, y, **kwargs)
+#print_(fit_cv)
+grdevices.postscript(file=output_file("cv-fit-lambda.eps"))
+plot(fit_cv)
+grdevices.dev_off()
+
+
+#
+# See how well we do on our data
+#
+logger.info('Evaluating model')
+predictions = glmnet.predict_cv_glmnet(fit_cv, sparsex, s="lambda.1se")
+pred = rocr.prediction(predictions, y)
+perf = rocr.performance(pred, "tpr", "fpr")
+auc = rocr.performance(pred, "auc").do_slot('y.values')[0][0]
+logger.info('AUC=%f', auc)
+grdevices.postscript(file=output_file("predictions.eps"))
+plot(perf, main='AUC = %.3f' % auc)
+#R.r['hist'](predictions[:])
+grdevices.dev_off()
+#gp = ggplot2.ggplot(predictions[:])
+#print gp
+
+#
+# Get coefficients
+#
+logger.info('Examine coefficients')
+coef = R.r['coef'](fit_cv, s="lambda.1se")
+# for slot in coef.slotnames():
+#     print slot, coef.do_slot(slot)
+indexes = coef.do_slot('i')
+logger.info('Using %d / %d motifs', len(indexes)-1, num_motifs) 
+vars = coef.do_slot('Dimnames')[0].rx(indexes.ro+1)
+weights = coef.do_slot('x')
+assert len(vars) == len(weights)
+sorted_coefs = list(zip(weights, vars))
+sorted_coefs.sort()
+for weight, var in sorted_coefs:
+    logger.info('beta: % .3f : %s', weight, var)
+
+
+#
+# Save R objects for later
+#
+logger.info('Saving R workspace')
+R.rinterface.globalenv['sparsex'] = sparsex
+R.rinterface.globalenv['y'] = y
+R.rinterface.globalenv['fit.cv'] = fit_cv
+save(
+    list=R.r['ls'](all=True), 
+    file=output_file("workspace.rda.gz"), 
+    compress=True)
+
+
