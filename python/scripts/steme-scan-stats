@@ -27,6 +27,11 @@ parser = OptionParser(
     description="Calculates statistics for scan results.")
 add_options(parser)
 parser.add_option(
+    "--no-html",
+    action='store_true',
+    help="Don't produce HTML output",
+)
+parser.add_option(
     "--dataset-name",
     default='unknown data',
     help="Use DATASETNAME as the name of the input sequences in the "
@@ -60,8 +65,13 @@ by_motif = get_sites_by_motif(occurrences)
 #
 # Create the HTML output.
 #
-create_html_output(options.dataset_name, motifs,
-                   occurrences, by_motif, seq_infos, options)
+if not options.no_html:
+    try:
+        create_html_output(options.dataset_name, motifs,
+                        occurrences, by_motif, seq_infos, options)
+    except ValueError:
+        logging.warning("Could not write HTML, perhaps too many sites.")
+
 
 #
 # Write sequence-centric statistics
@@ -71,3 +81,4 @@ logging.info('Writing sequence centric statistics to: %s',
              seq_centric_filename)
 with open(seq_centric_filename, 'w') as out:
     write_seq_centric_stats(out, motifs, occurrences, seq_infos, options)
+
