@@ -7,7 +7,8 @@ As well as finding motifs, STEME is able to scan genomic sequences for
 instances of these motifs (putative transcription factor binding sites). To use
 STEME as a motif finder you can execute the following command::
 
-  steme-pwm-scan --prediction-Z-threshold=.5 --lambda=.001 <motifs file> <input fasta sequence file>
+  steme-pwm-scan --prediction-Z-threshold=.5 --lambda=.001
+    <motifs file> <input fasta sequence file>
 
 which will create a file called ``steme-pwm-scan.out`` containing the positions
 of the putative binding sites and their scores.  The motifs file should be in
@@ -195,6 +196,7 @@ for more details.
 
 If you wish to constrain the regression coefficients to positive values you can
 use ``--lower-limits=0`` as an argument to the script. This can be useful when
-you are interested in discriminating using motifs that occur in only one
-of the scans. The example above was run with this argument, hence all the
-coefficients are positive.
+you are interested in discriminating using motifs that occur in only one of the
+scans. The example above was run with this argument, hence all the coefficients
+are positive. Note also that ``glmnet`` tends to be much faster when
+constrained in this way.
