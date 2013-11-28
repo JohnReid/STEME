@@ -66,6 +66,15 @@ parser.add_option(
     help="Bound the coefficients below by LOWERLIMITS.",
     metavar="LOWERLIMITS"
 )
+parser.add_option(
+    '--alpha',
+    type='float',
+    default=1.,
+    help="Use ALPHA as the elasticnet mixing parameter. The default 1 will"
+    "run a lasso, 0 will run a ridge regression, any value between 0 and 1"
+    "will run a compromise between the two.",
+    metavar="ALPHA"
+)
 options, scan_stats = parser.parse_args()
 if 2 > len(scan_stats):
     logger.warning('Must have at least two scan statistics files')
@@ -132,6 +141,7 @@ kwargs = {
     "standardize": False,
     "family": "binomial",
     "type.measure": options.type_measure,
+    "alpha": options.alpha,
 }
 if options.lower_limits is not None:
     kwargs["lower.limits"] = options.lower_limits
