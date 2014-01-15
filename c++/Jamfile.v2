@@ -58,7 +58,7 @@ project MotifSearch
         <include>.
         <include>include
         <include>$(BOOST_ROOT)
-        <include>$(BOOST_INDEXING_SUITE)
+        <include>indexing_suite_v2
         <variant>debug:<python-debugging>on
         <variant>debug:<python>2.7
     : usage-requirements

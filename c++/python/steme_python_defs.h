@@ -44,8 +44,8 @@
 #include <myrrh/python/multi_array_to_numpy.h>
 #include <myrrh/python/boost_function.h>
 
-#include <indexing_suite/vector.hpp>
-#include <indexing_suite/map.hpp>
+#include <boost/python/suite/indexing/vector.hpp>
+#include <boost/python/suite/indexing/map.hpp>
 
 
 
