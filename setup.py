@@ -38,7 +38,7 @@ def get_config_schema():
     return ConfigSchema(
         make_boost_base_options() + [
             BoostLibraries("python"),
-            Option("SEQAN_DIR"),
+            Option("SEQAN_DIR", default=''),
             StringListOption(
                 "CXXFLAGS", [], help="Any extra C++ compiler options to include"),
             StringListOption(
@@ -229,7 +229,7 @@ def main():
                                     ],
                                 },
         include_package_data  = True,
-        install_requires      = ['cookbook', 'numpy', 'matplotlib'],
+        install_requires      = ['cookbook', 'numpy', 'matplotlib', 'weblogo'],
         scripts               = [
                                     'python/scripts/steme',
                                     'python/scripts/steme-em',

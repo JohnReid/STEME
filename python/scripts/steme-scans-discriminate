@@ -120,7 +120,8 @@ x = replaceNA(x)
 x = asmatrix(x)
 logger.info('Have %d motifs', x.ncol)
 logger.info('Have %d sequences', x.nrow)
-logger.info('%.1f%% entries of X are non-zero', 100 * nnzero(x)[0] / prod(dim(x))[0])
+logger.info('%.1f%% entries of X are non-zero', 
+            100 * nnzero(x)[0] / prod(dim(x))[0])
 sparsex = matrix.Matrix(x, sparse=True)
 
 
