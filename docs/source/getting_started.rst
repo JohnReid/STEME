@@ -47,13 +47,13 @@ on your system:
   you could install it locally from source.
 
 
-- `Boost C++ libraries`_: Versions more recent than 1.47 should work. The
-  easiest way to install them is through your package manager::
+- `Boost python C++ library`_: Versions more recent than 1.47 should work. The
+  easiest way to install it is through your package manager::
 
-    sudo apt-get install libboost-dev
+    sudo apt-get install libboost-python-dev
 
-  Otherwise you can download them and install the libraries following the
-  commands_ given at the Boost website.
+  Otherwise you can download all of the boost libraries and install them
+  following the commands_ given at the Boost website.
 
 
 - `SeqAn sequence analysis library`_: The SeqAn C++ library provides the suffix
@@ -96,7 +96,7 @@ on your system:
 
 .. _GCC: http://gcc.gnu.org/
 .. _Python 2.7: http://www.python.org/
-.. _Boost C++ libraries: http://www.boost.org/
+.. _Boost python C++ library: http://www.boost.org/
 .. _commands: http://www.boost.org/doc/libs/1_49_0/more/getting_started/unix-variants.html#easy-build-and-install
 .. _SeqAn sequence analysis library: http://www.seqan.de/
 .. _FFTW3: _http://www.fftw.org/
