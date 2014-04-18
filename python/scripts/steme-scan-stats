@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Copyright John Reid 2012
+# Copyright John Reid 2012, 2013, 2014
 #
 
 """
@@ -69,7 +69,8 @@ if not options.no_html:
     try:
         create_html_output(options.dataset_name, motifs,
                         occurrences, by_motif, seq_infos, options)
-    except ValueError:
+    except ValueError, e:
+        logging.warning(e)
         logging.warning("Could not write HTML, perhaps too many sites.")
 
 

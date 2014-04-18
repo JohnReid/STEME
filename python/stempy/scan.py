@@ -1,11 +1,11 @@
 #
-# Copyright John Reid 2012
+# Copyright John Reid 2012, 2013, 2014
 #
-
 
 """
 Code to analyse results of STEME PWM scanning.
 """
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -237,6 +237,90 @@ def calculate_per_motif_density(motifs, by_motif, seq_infos):
     return num_sites_per_base
 
 
+def calculate_motif_best_Z_per_sequence(motifs, by_motif, numseqs):
+    # A list of dictionaries indexed by sequence then motif representing the best score
+    # that motif had in that sequence
+    result = numpy.zeros((len(motifs), numseqs))
+    for m, motif in enumerate(motifs):
+        result_row = result[m]
+        for occ in by_motif[motif]:
+            assert occ.motif == motif
+            result_row[occ.seq] = max(result_row[occ.seq], occ.Z)
+    return result
+
+
+def hier_cluster_and_permute(matrix):
+    import scipy.cluster.hierarchy as hier
+    from scipy.spatial.distance import pdist
+
+    return hier.centroid(matrix)
+
+    D = pdist(matrix)  # upper triangle of distance matrix as vector
+    Y = hier.linkage(D, method='single')  # Cluster
+
+    # return permuted matrix and dendrogram
+    return Y
+
+
+def plot_best_Z(motifs, best_Z):
+    """Plot the best Z for each motif in each sequence.
+    """
+    import scipy.cluster.hierarchy as hier
+    fig = pylab.gcf()
+
+    # Cluster Y axis
+    Y = hier.centroid(best_Z)
+    axdendro = fig.add_axes([0.01,0.02,0.18,0.96])
+    axdendro.set_xticks([])
+    axdendro.set_frame_on(False)
+    dendro = hier.dendrogram(Y, labels=motifs, orientation='right')
+    best_Z_permuted = best_Z[dendro['leaves'],:]
+
+    # Plot matrix
+    axmatrix = fig.add_axes([0.4,0.02,0.5,0.96])
+    im = axmatrix.matshow(best_Z_permuted, aspect='auto', origin='lower')
+    axmatrix.set_xticks([])
+    axmatrix.set_yticks([])
+
+    # Plot colorbar
+    axcolor = fig.add_axes([0.91,0.02,0.02,0.96])
+    pylab.colorbar(im, cax=axcolor)
+
+
+def plot_cooccurrences(motifs, best_Z):
+    """Plot the cooccurrences of motifs.
+    """
+    import scipy.cluster.hierarchy as hier
+    M = len(motifs)
+    best_Z_thresh = best_Z > .6
+    cooccurrences = numpy.ones((M, M))
+    for m1 in xrange(M):
+        #m1seqs = best_Z_thresh[m1]
+        for m2 in xrange(M):
+            #m2seqs = best_Z_thresh[m2]
+            #both = sum(numpy.logical_and(m1seqs, m2seqs))
+            #cooccurrences[m1,m2] = both/float(sum(m2seqs))
+            cooccurrences[m1,m2] = numpy.sqrt(sum(best_Z[m1] * best_Z[m2])) \
+                / numpy.linalg.norm(best_Z[m2])
+    Y = hier.centroid(cooccurrences)
+    index = hier.fcluster(Y, -1) - 1
+    cooccurrences = cooccurrences[index,:]
+    cooccurrences = cooccurrences[:,index]
+    pylab.pcolor(cooccurrences)
+    pylab.colorbar()
+    ax = pylab.gca()
+    ax.set_xticks([])
+    #ax.set_xticks(.5 + numpy.arange(M))
+    #ax.set_xticklabels(motifs)
+    ax.set_yticks(.5 + numpy.arange(M))
+    ax.set_yticklabels(numpy.asarray(motifs)[index])
+    ax.set_xlim((0,M))
+    ax.set_ylim((0,M))
+    for line in ax.yaxis.get_ticklines():
+        line.set_markersize(0)
+    pylab.gcf().subplots_adjust(left=.27, bottom=.02, top=.98, right=.99)
+
+
 def plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler):
     """Plot the number of sites over the sequences.
     """
@@ -283,7 +367,7 @@ def plot_occs_by_motif(by_motif):
     """Plot # occurrences for each motif.
     """
     sizes = [
-        (len(occs), sum(occ.Z for occ in occs), name) 
+        (len(occs), sum(occ.Z for occ in occs), name)
         for name, occs in by_motif.iteritems()]
     expected = [(len(occs), name) for name, occs in by_motif.iteritems()]
     sizes.sort()
@@ -319,38 +403,59 @@ def savefig(tag, options):
 def create_figures(motifs, occs, by_motif, seq_infos, options):
     """Create figures.
     """
+    # Scan scores
     format_cycler = create_format_cycler(marker=simple_marker_styles, c='mbc')
     fig = pylab.figure(figsize=(6, 4))
     lines = plot_scores_per_motif(motifs, by_motif, format_cycler)
     savefig('scan-scores', options)
     pylab.close()
 
+    # Scan legend
     fig = pylab.figure(figsize=(4.25, 4))
     pylab.figlegend(lines, motifs, 'center')
     savefig('scan-legend', options)
     pylab.close()
 
+    # Best Z for each motif/sequence combination
+    fig = pylab.figure(figsize=(4.25, 4))
+    best_Z = calculate_motif_best_Z_per_sequence(motifs, by_motif, len(seq_infos))
+    plot_best_Z(motifs, best_Z)
+    savefig('scan-best-Z', options)
+    pylab.close()
+
+    # Scan motif cooccurrences
+    fig = pylab.figure(figsize=(4.25, 4))
+    #pylab.figlegend(lines, motifs, 'center')
+    plot_cooccurrences(motifs, best_Z)
+    savefig('scan-cooccurrences', options)
+    pylab.close()
+
+    # Scan positions
     fig = pylab.figure(figsize=(6, 4))
     lines = plot_site_positions(motifs, occs, by_motif, seq_infos,
                                 format_cycler)
     savefig('scan-positions', options)
     pylab.close()
 
+    # Scan legend with all
     fig = pylab.figure(figsize=(4.25, 4))
     pylab.figlegend(lines, ['ALL MOTIFS'] + motifs, 'center')
     savefig('scan-legend-with-all', options)
     pylab.close()
 
+    # Scan sequences
     fig = pylab.figure(figsize=(6, 4))
     plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler)
     savefig('scan-sequences', options)
     pylab.close()
 
+    # Scan lengths
     fig = pylab.figure(figsize=(6, 4))
     plot_seq_lengths(seq_infos)
     savefig('scan-lengths', options)
     pylab.close()
 
+    # Scan occurrences by motif
     fig = pylab.figure(figsize=(6, len(by_motif) / 4.))
     pylab.subplots_adjust(left=.3, bottom=.1, right=.96, top=.98)
     plot_occs_by_motif(by_motif)
