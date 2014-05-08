@@ -159,8 +159,6 @@ def plot_scores_per_motif(motifs, by_motif, format_cycler):
                 **fmt
             )[0]
         )
-    #pylab.xlim(-.01, 1.01)
-    #pylab.gca().get_xaxis().set_visible(False)
     pylab.ylim(ymax=1)
     pylab.ylabel('Z')
     pylab.xlabel('sites')
@@ -432,10 +430,17 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
         size = 12
     figlegendprops = {'size': size}
 
-    # Scan scores
+    # Format cycler for line plots
     format_cycler = create_format_cycler(
         linestyle=['--', '-.', '-', ':'],
         c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+
+    # Format cycler for marker plots
+    format_cycler_marker = create_format_cycler(
+        marker=simple_marker_styles,
+        c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+
+    # Scan scores
     fig = pylab.figure(figsize=(6, 4))
     lines = plot_scores_per_motif(motifs, by_motif, format_cycler)
     savefig('scan-scores', options)
@@ -482,8 +487,14 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
 
     # Scan sequences
     fig = pylab.figure(figsize=(6, 4))
-    plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler)
+    lines = plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler_marker)
     savefig('scan-sequences', options)
+    pylab.close()
+
+    # Scan legend with markers
+    fig = pylab.figure(figsize=(4.25, 4))
+    pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
+    savefig('scan-legend-marker', options)
     pylab.close()
 
     # Scan lengths

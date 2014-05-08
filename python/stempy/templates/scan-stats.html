@@ -38,16 +38,25 @@
         
         <p>
         <hr>
+        <h2 id="num-occurrences">Number of occurrences</h2>
+        <img src="scan-occs-by-motif.png" alt="Scan number of occurrences by motif image is missing!"/>
+        <br>
+        The number of occurrences for each motif.
+        
+        <p>
+        <hr>
         <h2 id="positions">Positions</h2>
         <img src="scan-positions.png" alt="Scan positions image is missing!"/>
         <img src="scan-legend-with-all.png" alt="Legend scores image is missing!"/>
         <br>
-        The positions of the predicted sites in the sequences. Each marker represents a site. The y-axis represents how
-        close the site is to the start or end of the sequence it is in. The sites are sorted in the x-axis according to 
-        their y-value. This plot allows us to see if particular motifs have sites that cluster in the centre or beginning
-        or end of the sequences. For example, suppose a motif's scatter plot has a flat region in the centre. This would allow us
-        to see that this motif's sites have a bias towards the centre of the sequences. A scatter plot for uniformly
-        distributed sites would have a near constant gradient.
+        The positions of the predicted sites in the sequences. Each marker represents a site.
+        The y-axis represents how close the site is to the start or end of the sequence it
+        is in. The sites are sorted in the x-axis according to their y-value. This plot allows
+        us to see if particular motifs have sites that cluster in the centre or beginning
+        or end of the sequences. For example, suppose a motif's scatter plot has a flat region
+        in the centre. This would allow us to see that this motif's sites have a bias towards
+        the centre of the sequences. A scatter plot for uniformly distributed sites would have
+        a near constant gradient.
         
         <p>
         <hr>
@@ -55,10 +64,10 @@
         <img src="scan-seq-coverage.png" alt="Scan sequence coverage image is missing!"/>
         <img src="scan-legend.png" alt="Legend scores image is missing!"/>
         <br>
-        The sequence coverage: how many sequences have sites for each motif as a function
+        The sequence coverage by motif: how many sequences have at least one site as a function
         of Z-score threshold.
         <img src="scan-sequences.png" alt="Scan sequences image is missing!"/>
-        <img src="scan-legend.png" alt="Legend scores image is missing!"/>
+        <img src="scan-legend-marker.png" alt="Legend scores image is missing!"/>
         <br>
         This plot shows the density of predicted sites for each sequence. Each sequence is
         represented as one x-value. The sequences are presented in the same order that they
@@ -86,13 +95,6 @@
         The second plot shows a statistic measuring the co-occurrence of a pair of motifs
         across the sequences.
         The motifs are again ordered according to a hierarchical clustering (not shown).
-        
-        <p>
-        <hr>
-        <h2 id="num-occurrences">Number of occurrences</h2>
-        <img src="scan-occs-by-motif.png" alt="Scan number of occurrences by motif image is missing!"/>
-        <br>
-        The number of occurrences for each motif.
 
     {% else %}
         
