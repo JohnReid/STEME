@@ -32,6 +32,11 @@ parser.add_option(
     help="Output results to directory: DIR",
     metavar="DIR"
 )
+parser.add_option(
+    "--eps",
+    action="store_true",
+    help="Create EPS logo as well as PNG",
+)
 options, args = parser.parse_args()
 stempy.ensure_dir_exists(options.output_dir)
 
@@ -67,7 +72,7 @@ with open(out_filename, 'w') as out:
                 logo_tag,
                 d=options.output_dir,
                 make_png=True,
-                make_eps=False,
+                make_eps=options.eps,
                 write_title=False,
                 show_fineprint=False)
             print >>out, '\n.. image:: logo-%s.png' % logo_tag
