@@ -14,6 +14,7 @@ import os
 import pyicl
 import pylab
 import numpy
+import bisect
 from cookbook.named_tuple import namedtuple
 from collections import defaultdict
 from itertools import ifilter
@@ -147,21 +148,22 @@ def plot_scores_per_motif(motifs, by_motif, format_cycler):
     lines = []
     for i, motif in enumerate(motifs):
         occs = by_motif[motif]
-        occs.sort(key=lambda occ: occ.Z)
+        occs.sort(key=lambda occ: -occ.Z)
         fmt = format_cycler(i)
         lines.append(
             pylab.plot(
-                numpy.linspace(0, 1, num=len(occs)),
+                numpy.arange(len(occs)),
+                #numpy.linspace(0, 1, num=len(occs)),
                 [occ.Z for occ in occs],
                 label=motif,
-                linestyle=':',
                 **fmt
             )[0]
         )
-    pylab.xlim(-.01, 1.01)
-    pylab.gca().get_xaxis().set_visible(False)
+    #pylab.xlim(-.01, 1.01)
+    #pylab.gca().get_xaxis().set_visible(False)
     pylab.ylim(ymax=1)
     pylab.ylabel('Z')
+    pylab.xlabel('sites')
     pylab.title('Z by motif')
     return lines
 
@@ -173,7 +175,6 @@ def plot_scaled_positions(occs, seq_infos, **kwargs):
     return pylab.plot(
         numpy.linspace(0, 1, num=len(scaled_positions)),
         scaled_positions,
-        linestyle=':',
         **kwargs
     )[0]
 
@@ -183,7 +184,7 @@ def plot_site_positions(motifs, occs, by_motif, seq_infos, format_cycler):
     """
     lines = []
     lines.append(plot_scaled_positions(
-        occs, seq_infos, label='ALL MOTIFS', c='k', marker='s'))
+        occs, seq_infos, label='ALL MOTIFS', c='k', linestyle='-'))
     for i, motif in enumerate(motifs):
         lines.append(plot_scaled_positions(
             by_motif[motif], seq_infos, label=motif, **format_cycler(i)))
@@ -238,7 +239,7 @@ def calculate_per_motif_density(motifs, by_motif, seq_infos):
 
 
 def calculate_motif_best_Z_per_sequence(motifs, by_motif, numseqs):
-    # A list of dictionaries indexed by sequence then motif representing the best score
+    # A numpy array indexed by motif, then sequence representing the best score
     # that motif had in that sequence
     result = numpy.zeros((len(motifs), numseqs))
     for m, motif in enumerate(motifs):
@@ -260,6 +261,22 @@ def hier_cluster_and_permute(matrix):
 
     # return permuted matrix and dendrogram
     return Y
+
+
+def plot_seq_coverage(best_Z, format_cycler):
+    """Plot what proportion of sequences have sites for each motif at
+    each Z-score threshold."""
+    lines = []
+    for i, motif_best_Z in enumerate(best_Z):
+        sorted_best_Z = numpy.sort(motif_best_Z)
+        first_non_zero = bisect.bisect(sorted_best_Z, 0)
+        lines.append(pylab.plot(
+            numpy.arange(best_Z.shape[1] - first_non_zero),
+            sorted_best_Z[first_non_zero:][::-1],
+            **format_cycler(i)))
+    pylab.ylabel('Z')
+    pylab.xlabel('sequences')
+    return lines
 
 
 def plot_best_Z(motifs, best_Z):
@@ -403,8 +420,22 @@ def savefig(tag, options):
 def create_figures(motifs, occs, by_motif, seq_infos, options):
     """Create figures.
     """
+
+    # Size of figlegend
+    if len(motifs) > 30:
+        size = 6
+    elif len(motifs) > 16:
+        size = 8
+    elif len(motifs) > 10:
+        size = 10
+    else:
+        size = 12
+    figlegendprops = {'size': size}
+
     # Scan scores
-    format_cycler = create_format_cycler(marker=simple_marker_styles, c='mbc')
+    format_cycler = create_format_cycler(
+        linestyle=['--', '-.', '-', ':'],
+        c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
     fig = pylab.figure(figsize=(6, 4))
     lines = plot_scores_per_motif(motifs, by_motif, format_cycler)
     savefig('scan-scores', options)
@@ -412,7 +443,7 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
 
     # Scan legend
     fig = pylab.figure(figsize=(4.25, 4))
-    pylab.figlegend(lines, motifs, 'center')
+    pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
     savefig('scan-legend', options)
     pylab.close()
 
@@ -439,8 +470,14 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
 
     # Scan legend with all
     fig = pylab.figure(figsize=(4.25, 4))
-    pylab.figlegend(lines, ['ALL MOTIFS'] + motifs, 'center')
+    pylab.figlegend(lines, ['ALL MOTIFS'] + motifs, 'center', prop=figlegendprops)
     savefig('scan-legend-with-all', options)
+    pylab.close()
+
+    # Sequence coverage
+    fig = pylab.figure(figsize=(6, 4))
+    plot_seq_coverage(best_Z, format_cycler)
+    savefig('scan-seq-coverage', options)
     pylab.close()
 
     # Scan sequences

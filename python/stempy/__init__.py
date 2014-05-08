@@ -511,12 +511,12 @@ def logo(dist, tag, d, make_png=False, make_eps=True, write_title=True, show_fin
     format_ = W.LogoFormat(data, options)
     ensure_dir_exists(d)
     filename = 'logo-%s' % tag
-    if make_png:
-        W.png_formatter(data,
-                        format_, open(os.path.join(d, '%s.png' % filename), 'w'))
     if make_eps:
         W.eps_formatter(data,
                         format_, open(os.path.join(d, '%s.eps' % filename), 'w'))
+    if make_png:
+        W.png_formatter(data,
+                        format_, open(os.path.join(d, '%s.png' % filename), 'w'))
 
 
 def consensus_from_pssm(pssm, bg_freqs=None):
