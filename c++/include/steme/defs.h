@@ -1,4 +1,4 @@
-/** Copyright John Reid 2011, 2012, 2013
+/** Copyright John Reid 2011, 2012, 2013, 2014
  *
  * \file
  * \brief Basic definitions and includes for STEME algorithm.

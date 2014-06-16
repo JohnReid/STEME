@@ -1,5 +1,5 @@
 /**
- * Copyright John Reid 2011
+ * Copyright John Reid 2011, 2012, 2013, 2014
  *
  * \file Code to parse p-value test cases */
 
@@ -25,10 +25,9 @@ template< typename Iterator >
 optional< p_value_test_case >
 parse_IC_line( Iterator first, Iterator last )
 {
-	using qi::double_;
-	using qi::_1;
-    using qi::uint_;
     using qi::double_;
+    using qi::_1;
+    using qi::uint_;
     using qi::phrase_parse;
     using ascii::space;
     using boost::phoenix::ref;
