@@ -137,6 +137,8 @@ calculateZn = createZncalculator(runx1withpc, lambda_)
 sumvisitor = ZnSumVisitor(W, calculateZn)
 seqan.traverse.topdownhistorytraversal(index.topdownhistory(), sumvisitor)
 print sumvisitor.sums
+trueZnsum = sumvisitor.sums[0].sum()
+print trueZnsum
 #logo(normalisepwm(sumvisitor.sums), 'learnt')
 
 
@@ -156,7 +158,7 @@ def countWmers(it, W, counts):
 
 
 Wmercounts = npy.zeros(2*len(index), dtype=npy.uint32)
-countWmers(index.topdownhistory(), W, Wmercounts)
+numWmers = countWmers(index.topdownhistory(), W, Wmercounts)
 
 
 def createpwmlikelihoodfn(pwm):
@@ -169,42 +171,41 @@ def bglikelihoodfn(w):
     return UNIFORM0ORDER
 
 
-class LikelihoodSampler(object):
+class ImportanceSampler(object):
     def __init__(self, baselikelihoodfn, W, Wmercounts):
         self.W = W
         self.Wmercounts = Wmercounts
         self.baselikelihoodfn = baselikelihoodfn
 
-    def __call__(self, it, likelihood=1.):
+    def __call__(self, it, likelihoodratio=1.):
         w = it.repLength
         if w >= self.W:
-            return it, likelihood
+            return it, likelihoodratio
         else:
             representative = it.representative
-            # Descend each child to calculate weights
+            # Descend each child to get Wmer counts
             counts = npy.zeros(SIGMA)
             for base in ALLBASES:
                 if it.goDown(base):
                     counts[base.ordValue] = Wmercounts[it.value.id]
-                    #logger.info('%s %d %f', base, Wmercount, likelihood)
+                    #logger.info('%s %d %f', base, Wmercount, likelihoodratio)
                     it.goUp()
-            likelihoods = self.baselikelihoodfn(w)
-            weights = counts * likelihoods
-            #logger.info('%-10s: %s', representative, weights)
+            freqs = counts.astype(float) / counts.sum()
+            # Get the importance weights and combine with Wmer frequencies
+            # to create sampling distribution
+            impweights = self.baselikelihoodfn(w)
+            weights = freqs * impweights
+            samplingdist = weights / weights.sum()
+            #logger.info('%-10s: %s', representative, samplingdist)
             # Sample one of the bases
-            sample = rdm.choice(ALLBASES, p=weights/weights.sum())
+            sample = rdm.choice(ALLBASES, p=samplingdist)
             # Descend the sample
             wentDown = it.goDown(sample)
             assert wentDown
-            # Calculate the likelihood of the parent edge
-            samplelikelihood = likelihoods[sample.ordValue] # likelihood of the sample
-            edgelikelihood = reduce( # likelihood of the rest of the parent edge
-                float.__mul__,
-                (self.baselikelihoodfn(w2)[it.representative[w2].ordValue]
-                    for w2 in xrange(w+1, min(W, it.repLength))),
-                1.)
+            # Calculate the updated likelihood ratio
+            likelihoodratioupdate = samplingdist[sample.ordValue] / freqs[sample.ordValue]
             # recurse
-            return self(it, likelihood * samplelikelihood * edgelikelihood)
+            return self(it, likelihoodratio * likelihoodratioupdate)
 
 
 
@@ -213,13 +214,13 @@ def sample(sampler, numsamples, **kwargs):
         sampler(index.topdownhistory())
         for _ in xrange(numsamples)]
     sampledit = map(lambda x: x[0], sampled)
-    f = map(lambda x: x[1], sampled)
+    lr = map(lambda x: x[1], sampled)
     X = map(lambda it: it.representative[:W], sampledit)
     Z = map(calculateZn, X)
     kwargs.update({
         'X': X,
         'Z': Z,
-        'f': f,
+        'lr': lr,
     })
     df = pd.DataFrame(kwargs)
     return df
@@ -227,8 +228,8 @@ def sample(sampler, numsamples, **kwargs):
 
 numsamples = 1000
 rdm.seed(1)
-samplerbs = LikelihoodSampler(createpwmlikelihoodfn(runx1withpc), W, Wmercounts)
-samplerbg = LikelihoodSampler(bglikelihoodfn, W, Wmercounts)
+samplerbs = ImportanceSampler(createpwmlikelihoodfn(runx1withpc), W, Wmercounts)
+samplerbg = ImportanceSampler(bglikelihoodfn, W, Wmercounts)
 samplebs = sample(samplerbs, numsamples, model='BS')
 samplebg = sample(samplerbg, numsamples, model='BG')
 samples = pd.concat((samplebs, samplebg))
@@ -247,7 +248,7 @@ pp.plot()
 
 
 def estimatesum(samples):
-    return sum(samples['Z']/samples['f'])/len(samples)
+    return sum(samples['Z']/samples['lr'])*numWmers/len(samples)
 
 
 def makeestimate(sampler, numsamples, **kwargs):
@@ -264,11 +265,35 @@ def makeestimates(sampler, numsamples, numestimates, **kwargs):
     return pd.DataFrame(kwargs)
 
 
-estimatesbs = makeestimates(samplerbs, numsamples=100, numestimates=60, model='BS')
-estimatesbg = makeestimates(samplerbg, numsamples=100, numestimates=60, model='BG')
-estimates = pd.concat((estimatesbs, estimatesbg))
-estimates.index = npy.arange(len(estimates))  # re-index to avoid duplicate row.names in Rdf
-bp = estimates.boxplot(column=['estimate'], by=['model'])
+def estimatebothsamplers(numsamples, numestimates):
+    estimatesbs = makeestimates(
+        samplerbs, numsamples=numsamples, numestimates=numestimates, model='BS')
+    estimatesbg = makeestimates(
+        samplerbg, numsamples=numsamples, numestimates=numestimates, model='BG')
+    return pd.concat((estimatesbs, estimatesbg))
+
+estimates = pd.concat(
+    (estimatebothsamplers(numsamples, 10) for numsamples in [10, 50, 100, 150, 300, 1000]))
+bp = estimates.boxplot(column=['estimate'], by=['numsamples', 'model'])
+ax = plt.gca()
+xmin, xmax = ax.get_xbound()
+plt.hlines(trueZnsum, xmin, xmax, linestyles='dashdot')
+ax.set_ylim(top=2*trueZnsum)
 plt.savefig('estimates.png')
+
+grouped = estimates.groupby(['numsamples', 'model'])
+grouped.aggregate(npy.var)
+grouped.aggregate(npy.mean)
+
+varbs = npy.var(estimatesbs['estimate'])
+varbg = npy.var(estimatesbg['estimate'])
+print varbs
+print varbg
+print varbg / varbs
+
+mysamples = sample(samplerbs, 300*20*2, model='BS')
+myestimate = estimatesum(samples)
+print myestimate
+print trueZnsum
 
 
