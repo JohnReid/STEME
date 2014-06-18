@@ -1,7 +1,28 @@
 #!/usr/bin/env python
 
-"""
+r"""
 Code for importance sampling in EM part of MEME algorithm.
+
+MEME's EM algorithm is dominated by calculations of the form
+.. math::
+
+    $\sum_{n \in T\} \langle X_n \rangle$
+
+for some set :math:`T`.
+
+STEME approximates these sums by ignoring those :math:`n` for which :math:`\langle Z_n \rangle`
+is small: :math:`T_\delta = \{ n : Z_n \ge \delta \}`.
+
+Another way to estimate these sums is importance sampling. Suppose :math:`f(n)` is
+a uniform distribution over :math:`T`, then
+.. math::
+
+    $\sum_{n \in T\} \langle X_n \rangle$
+    = |T| \bigg\langle \langle Z_n \rangle \bigg\rangle_{f(.)}
+
+where the outer expectation is with respect to :math:`f(.)` and the inner expectation
+is with respect to MEME's model.
+
 """
 
 import logging
@@ -26,7 +47,8 @@ from rpy2.robjects.packages import importr
 grdevices = importr('grDevices')
 
 
-ALLBASES = (seqan.DNA('A'), seqan.DNA('C'), seqan.DNA('G'), seqan.DNA('T'))
+#ALLBASES = (seqan.DNA('A'), seqan.DNA('C'), seqan.DNA('G'), seqan.DNA('T'))
+ALLBASES = tuple(map(seqan.DNA, 'ACGT'))
 SIGMA = len(ALLBASES)
 LOGQUARTER = log(.25)
 UNIFORM0ORDER = npy.ones(SIGMA) / SIGMA
@@ -216,17 +238,22 @@ def sample(sampler, numsamples, **kwargs):
     sampledit = map(lambda x: x[0], sampled)
     lr = map(lambda x: x[1], sampled)
     X = map(lambda it: it.representative[:W], sampledit)
-    Z = map(calculateZn, X)
+    Z = npy.array(map(calculateZn, X))
     kwargs.update({
         'X': X,
         'Z': Z,
         'lr': lr,
+        'Zweighted': Z / lr
     })
     df = pd.DataFrame(kwargs)
     return df
 
 
-numsamples = 1000
+def estimatesum(samples):
+    return samples.sum() * numWmers / len(samples)
+
+
+numsamples = 50000
 rdm.seed(1)
 samplerbs = ImportanceSampler(createpwmlikelihoodfn(runx1withpc), W, Wmercounts)
 samplerbg = ImportanceSampler(bglikelihoodfn, W, Wmercounts)
@@ -234,9 +261,16 @@ samplebs = sample(samplerbs, numsamples, model='BS')
 samplebg = sample(samplerbg, numsamples, model='BG')
 samples = pd.concat((samplebs, samplebg))
 samples.index = npy.arange(len(samples))  # re-index to avoid duplicate row.names in Rdf
-rsamples = com.convert_to_r_dataframe(samples)
+samplesgrouped = samples.groupby(['model'])
+variances = samplesgrouped['Zweighted'].aggregate(npy.var)
+print variances
+print variances['BG'] / variances['BS']
+print estimatesum(samples)
+print samplesgrouped['Zweighted'].aggregate(estimatesum)
+print trueZnsum
 
 #grdevices.png(file="sampled-Z.png", width=4, height=3, units="in", res=300)
+rsamples = com.convert_to_r_dataframe(samples)
 pp = ggplot2.ggplot(rsamples) + \
     ggplot2.aes_string(x='Z', color='factor(model)') + \
     ggplot2.scale_colour_discrete(name="model") + \
@@ -247,13 +281,10 @@ pp.plot()
 #grdevices.dev_off()
 
 
-def estimatesum(samples):
-    return sum(samples['Z']/samples['lr'])*numWmers/len(samples)
-
 
 def makeestimate(sampler, numsamples, **kwargs):
     samples = sample(sampler, numsamples, **kwargs)
-    return estimatesum(samples)
+    return estimatesum(samples['Zweighted'])
 
 
 def makeestimates(sampler, numsamples, numestimates, **kwargs):
@@ -272,9 +303,13 @@ def estimatebothsamplers(numsamples, numestimates):
         samplerbg, numsamples=numsamples, numestimates=numestimates, model='BG')
     return pd.concat((estimatesbs, estimatesbg))
 
-estimates = pd.concat(
-    (estimatebothsamplers(numsamples, 10) for numsamples in [10, 50, 100, 150, 300, 1000]))
+#samplesizes = [10, 50, 100, 150, 300, 1000]
+samplesizes = [10, 50, 100]
+estimates = pd.concat((estimatebothsamplers(numsamples, 10) for numsamples in samplesizes))
 bp = estimates.boxplot(column=['estimate'], by=['numsamples', 'model'])
+#locs, labels = plt.xticks()
+#plt.xticks(locs, labels, rotation='vertical')
+plt.xticks(rotation='vertical')
 ax = plt.gca()
 xmin, xmax = ax.get_xbound()
 plt.hlines(trueZnsum, xmin, xmax, linestyles='dashdot')
@@ -284,16 +319,4 @@ plt.savefig('estimates.png')
 grouped = estimates.groupby(['numsamples', 'model'])
 grouped.aggregate(npy.var)
 grouped.aggregate(npy.mean)
-
-varbs = npy.var(estimatesbs['estimate'])
-varbg = npy.var(estimatesbg['estimate'])
-print varbs
-print varbg
-print varbg / varbs
-
-mysamples = sample(samplerbs, 300*20*2, model='BS')
-myestimate = estimatesum(samples)
-print myestimate
-print trueZnsum
-
 
