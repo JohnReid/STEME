@@ -511,12 +511,24 @@ def logo(dist, tag, d, make_png=False, make_eps=True, write_title=True, show_fin
     format_ = W.LogoFormat(data, options)
     ensure_dir_exists(d)
     filename = 'logo-%s' % tag
-    if make_eps:
-        W.eps_formatter(data,
-                        format_, open(os.path.join(d, '%s.eps' % filename), 'w'))
-    if make_png:
-        W.png_formatter(data,
-                        format_, open(os.path.join(d, '%s.png' % filename), 'w'))
+    # Weblogolib changed its interface between 3.3 and 3.4 so we need to check
+    # which version we have
+    splitversion = map(int, W.__version__.split('.'))
+    above34 = splitversion[0] >= 3 and splitversion[1] >= 4
+    if above34:
+        if make_eps:
+            open(os.path.join(d, '%s.eps' % filename), 'w').write(
+                W.eps_formatter(data, format_))
+        if make_png:
+            open(os.path.join(d, '%s.png' % filename), 'w').write(
+                W.png_formatter(data, format_))
+    else:
+        if make_eps:
+            W.eps_formatter(data,
+                            format_, open(os.path.join(d, '%s.eps' % filename), 'w'))
+        if make_png:
+            W.png_formatter(data,
+                            format_, open(os.path.join(d, '%s.png' % filename), 'w'))
 
 
 def consensus_from_pssm(pssm, bg_freqs=None):
