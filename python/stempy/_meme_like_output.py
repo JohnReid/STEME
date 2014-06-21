@@ -1,5 +1,5 @@
 #
-# Copyright John Reid 2011
+# Copyright John Reid 2011, 2014
 #
 
 
@@ -12,6 +12,7 @@ import numpy as N
 import os
 import sys
 from itertools import imap
+from . import motif_name
 
 
 class MemeLikeOutput(object):
@@ -70,7 +71,7 @@ TRAINING SET
 ********************************************************************************
 DATAFILE= %s
 ALPHABET= ACGT
-Sequence name            Weight Length  Sequence name            Weight Length  
+Sequence name            Weight Length  Sequence name            Weight Length
 -------------            ------ ------  -------------            ------ ------
 %s
 ********************************************************************************
@@ -93,7 +94,7 @@ COMMAND LINE SUMMARY
 This information can also be useful in the event you wish to report a
 problem with the STEME software.
 
-command: %s : (revcomp) 
+command: %s : (revcomp)
 
 model:  mod=           anr    nmotifs= %9d    evt=           inf
 object function=  E-value of product of p-values
@@ -107,9 +108,9 @@ data:   n= %15d    N= %15d
 strands: + -
 sample: seed=            0    seqfrac=         1
 Letter frequencies in dataset:
-A %.3f C %.3f G %.3f T %.3f 
+A %.3f C %.3f G %.3f T %.3f
 Background letter frequencies (from dataset with add-one prior applied):
-A %.3f C %.3f G %.3f T %.3f 
+A %.3f C %.3f G %.3f T %.3f
 ********************************************************************************
 
 """ % (
@@ -154,10 +155,10 @@ A %.3f C %.3f G %.3f T %.3f
 
         self.f.write("""
 ********************************************************************************
-MOTIF %2d    width = %4d   sites = %3d   llr = %f   E-value = %e
+MOTIF %10s    width = %4d   sites = %3d   llr = %f   E-value = %e
 ********************************************************************************
 --------------------------------------------------------------------------------
-    Motif %d Description
+    Motif %10s Description
 --------------------------------------------------------------------------------
 Simplified        A  %s
 pos.-specific     C  %s
@@ -165,8 +166,17 @@ probability       G  %s
 matrix            T  %s
 
 --------------------------------------------------------------------------------
-""" % (motif.idx + 1, motif.model.W, motif.num_sites, motif.LLR, N.exp(motif.log_E_value), motif.idx + 1,
-                    pssm_line(0), pssm_line(1), pssm_line(2), pssm_line(3)))
+""" % (
+    motif_name(motif.idx, algorithm.options),
+    motif.model.W,
+    motif.num_sites,
+    motif.LLR,
+    N.exp(motif.log_E_value),
+    motif_name(motif.idx, algorithm.options),
+    pssm_line(0),
+    pssm_line(1),
+    pssm_line(2),
+    pssm_line(3)))
 
     def write_relative_entropy(self, algorithm, motif):
         """
@@ -174,7 +184,7 @@ matrix            T  %s
         """
         raise NotImplementedError()
         self.f.write("""
-         bits    2.1         
+         bits    2.1
                  1.9 * ** * *
                  1.7 * ** * *
                  1.4 * ** * *
@@ -194,14 +204,14 @@ Entropy          1.0 **** ***
         raise NotImplementedError()
         self.f.write("""
 Multilevel           CAGCCCTG
-consensus             T  A A 
-sequence                 T                             
+consensus             T  A A
+sequence                 T
 """)
 
     def write_sites(self, algorithm, motif):
         """
         Write something like...
-        
+
         FR0000854                    -    254  1.81e-05 GAGTCCACAC CAGCCCTG CCCCAGGCTC
         """
         if len(algorithm.input_sequences.seqs) < algorithm.options.max_sites_to_write:
@@ -293,29 +303,29 @@ FR0000861                          0.0002  161_[-1]_420
     Motif %d in BLOCKS format
 --------------------------------------------------------------------------------
 BL   MOTIF %d width=8 seqs=23
-FR0000854                (  254) CAGCCCTG  1 
-FR0000854                (  157) CAGCCCTG  1 
-FR0000815                (  265) CAGCCCTG  1 
-FR0000815                (  145) CAGCCCTG  1 
-FR0000815                (  133) CAGCCCTG  1 
-FR0000878                (  365) CAGCACTG  1 
-FR0000873                (  306) CAGCACTG  1 
-FR0000868                (  302) CAGCTCTG  1 
-FR0000868                (  274) CAGCACTG  1 
-FR0000822                (    1) CAGCTCTG  1 
-FR0000068                (  290) CAGCTCTG  1 
-FR0000854                (  783) CAGCCCAG  1 
-FR0000878                (  373) CAGCACAG  1 
-FR0000854                (  280) CAGCACAG  1 
-FR0000841                (  235) CAGCACAG  1 
-FR0000841                (   89) CAGCACAG  1 
-FR0000804                (  151) CAGCTCAG  1 
-FR0000534                (  306) CAGCTCAG  1 
-FR0000868                (  510) CTGCCCTG  1 
-FR0000854                (  704) CTGCCCTG  1 
-FR0000781                (  249) CTGCCCTG  1 
-FR0000861                (  162) CTGCTCAG  1 
-FR0000804                (  347) CTGCTCAG  1 
+FR0000854                (  254) CAGCCCTG  1
+FR0000854                (  157) CAGCCCTG  1
+FR0000815                (  265) CAGCCCTG  1
+FR0000815                (  145) CAGCCCTG  1
+FR0000815                (  133) CAGCCCTG  1
+FR0000878                (  365) CAGCACTG  1
+FR0000873                (  306) CAGCACTG  1
+FR0000868                (  302) CAGCTCTG  1
+FR0000868                (  274) CAGCACTG  1
+FR0000822                (    1) CAGCTCTG  1
+FR0000068                (  290) CAGCTCTG  1
+FR0000854                (  783) CAGCCCAG  1
+FR0000878                (  373) CAGCACAG  1
+FR0000854                (  280) CAGCACAG  1
+FR0000841                (  235) CAGCACAG  1
+FR0000841                (   89) CAGCACAG  1
+FR0000804                (  151) CAGCTCAG  1
+FR0000534                (  306) CAGCTCAG  1
+FR0000868                (  510) CTGCCCTG  1
+FR0000854                (  704) CTGCCCTG  1
+FR0000781                (  249) CTGCCCTG  1
+FR0000861                (  162) CTGCTCAG  1
+FR0000804                (  347) CTGCTCAG  1
 //
 
 --------------------------------------------------------------------------------
@@ -331,7 +341,7 @@ FR0000804                (  347) CTGCTCAG  1
 --------------------------------------------------------------------------------
     Motif %d position-specific scoring matrix
 --------------------------------------------------------------------------------
-log-odds matrix: alength= 4 w= %2d n= %5d bayes= %8.5f E= %.1e 
+log-odds matrix: alength= 4 w= %2d n= %5d bayes= %8.5f E= %.1e
 %s
 --------------------------------------------------------------------------------
 """ % (
@@ -352,7 +362,7 @@ log-odds matrix: alength= 4 w= %2d n= %5d bayes= %8.5f E= %.1e
 --------------------------------------------------------------------------------
     Motif %d position-specific probability matrix
 --------------------------------------------------------------------------------
-letter-probability matrix: alength= 4 w= %2d nsites= %3d E= %.1e 
+letter-probability matrix: alength= 4 w= %2d nsites= %3d E= %.1e
 %s
 --------------------------------------------------------------------------------
 """ % (

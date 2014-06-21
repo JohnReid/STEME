@@ -24,8 +24,6 @@ from ._stempy_build import *
 from ._stempy_build import _dummy_fn, _debug, _python_debug_build, _has_google_profiler
 if _has_google_profiler:
     from ._stempy_build import __google_profiler_start, __google_profiler_stop
-from ._meme_like_output import MemeLikeOutput
-from ._minimal_meme_output import MinimalMemeOutput
 
 from cookbook.named_tuple import namedtuple
 from cookbook.timer import SimpleTimer, Timer
@@ -150,6 +148,12 @@ def add_options(option_parser):
         default=1000,
         type="int",
         help="Maximum number of sites to write information about in output."
+    )
+    output_options.add_option(
+        "--motif-name",
+        default="STEME-",
+        type="str",
+        help="Name for output motifs."
     )
     option_parser.add_option_group(output_options)
 
@@ -1071,6 +1075,11 @@ Prediction = namedtuple('Prediction', 'seq interval rev_comp p_value')
 NumInstances = namedtuple('NumInstances', 'count num_bases num_seqs per_base')
 
 
+def motif_name(idx, options):
+    """Return the name of the motif as defined by the options and its index."""
+    return '%s%d' % (options.motif_name, idx + 1)
+
+
 def analyse_num_instances(instances, seqs):
     """
     Analyse the number of instances found in the sequences.
@@ -1758,7 +1767,7 @@ class MotifFinder(object):
         num_sites = int(best_model.bs.pssm.num_samples)
         logo(
             N.exp(best_model.bs.pssm.log_probs.values()),
-            'STEME-motif-%02d' % self.motif_idx,
+            motif_name(self.motif_idx, self.options),
             self.options.output_dir,
             make_png=True,
             write_title=False
@@ -2317,6 +2326,7 @@ class Algorithm(object):
 
     def _initialise_meme_like_output(self):
         "Initialise MEME-like output if required"
+        from ._meme_like_output import MemeLikeOutput
         if self.options.meme_like_output:
             self.meme_like_output_file = os.path.join(
                 self.options.output_dir, self.options.meme_like_output)
@@ -2326,6 +2336,7 @@ class Algorithm(object):
 
     def _initialise_minimal_meme_output(self):
         "Initialise minimal MEME output"
+        from ._minimal_meme_output import MinimalMemeOutput
         self.minimal_meme_output_file = os.path.join(
             self.options.output_dir, 'steme.txt')
         output = MinimalMemeOutput(open(self.minimal_meme_output_file, 'w'))

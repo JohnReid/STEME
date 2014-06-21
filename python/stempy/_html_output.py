@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright John Reid 2011, 2012
+# Copyright John Reid 2011, 2012, 2013, 2014
 #
 
 """
@@ -10,7 +10,8 @@ HTML output.
 import os
 import shutil
 import logging
-from . import ensure_dir_exists, OptionParser, add_options, get_default_options, __release__
+from . import ensure_dir_exists, OptionParser, add_options, \
+    motif_name, get_default_options, __release__
 from jinja2 import Environment, PackageLoader
 from datetime import datetime, timedelta
 
@@ -44,11 +45,11 @@ class HTMLOutput(object):
         shutil.copy(stylesheet_filename, self._static_dir())
 
     @staticmethod
-    def _image_url(idx, format_='png'):
+    def _image_url(name, format_='png'):
         """
         A URL for the motif's image.
         """
-        return u'logo-STEME-motif-%02d.%s' % (idx, format_)
+        return u'logo-%s.%s' % (name, format_)
 
     def found_motif(self, algorithm, motif, seconds_taken):
         """
@@ -60,7 +61,8 @@ class HTMLOutput(object):
         f.write(
             template.render(
                 motif=motif,
-                image_url=HTMLOutput._image_url(motif.idx)
+                motifname=motif_name(motif.idx, algorithm.options),
+                image_url=HTMLOutput._image_url(motif_name(motif.idx, algorithm.options))
             )
         )
 
@@ -117,8 +119,14 @@ class HTMLOutput(object):
         }
         f.write(
             template.render(
-                motifs=[(motif, HTMLOutput._image_url(idx), HTMLOutput._image_url(idx, 'eps'))
-                        for idx, motif in enumerate(algorithm.motifs)],
+                motifs=[
+                    (
+                        motif,
+                        motif_name(motif.idx, algorithm.options),
+                        HTMLOutput._image_url(motif_name(motif.idx, algorithm.options)),
+                        HTMLOutput._image_url(idx, 'eps')
+                    )
+                    for idx, motif in enumerate(algorithm.motifs)],
                 **variables
             )
         )

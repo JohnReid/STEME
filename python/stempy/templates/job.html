@@ -13,10 +13,10 @@
   </p>
   
   <div id="motifs">
-  {% for motif, image_url, eps_url in motifs %}
-    <div id="motif {{ motif.idx }}">
+  {% for motif, motifname, image_url, eps_url in motifs %}
+    <div id="motif {{ motifname }}">
     <hr>
-    <h2>Motif {{ motif.idx }}</h2>
+    <h2>Motif: {{ motifname }}</h2>
     log10 <a href="#E-value">E-value</a> = {{ '%.2f' % (motif.log_E_value / 2.3025850929940459) }}<br>
     Motif built from {{ motif.num_sites }} sites.<br>
     Motif predicts {{ motif.predictions.__len__() }} 

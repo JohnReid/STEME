@@ -1,5 +1,5 @@
 #
-# Copyright John Reid 2012
+# Copyright John Reid 2012, 2013, 2014
 #
 
 
@@ -12,6 +12,7 @@ import numpy as N
 import sys
 import stempy
 from itertools import imap
+from . import motif_name
 
 
 class MinimalMemeOutput(object):
@@ -32,7 +33,7 @@ class MinimalMemeOutput(object):
         # determine if using both strands
         self.f.write("""
 # If you use STEME in your research, please cite:
-# 
+#
 # Nucleic Acids Res. 2011 Oct;39(18):e126. Epub 2011 Jul 23.
 # STEME: efficient EM to find motifs in large data sets.
 # Reid JE, Wernisch L.
@@ -60,11 +61,11 @@ A %.3f C %.3f G %.3f T %.3f
 
     def found_motif(self, algorithm, motif, seconds_taken):
         self.f.write("""
-MOTIF STEME-%d
+MOTIF %s
 letter-probability matrix: alength= 4 w= %4d nsites= %3d E= %e
 %s
 """ % (
-                     motif.idx + 1,
+                     motif_name(motif.idx, algorithm.options),
                      motif.model.W, motif.num_sites, N.exp(motif.log_E_value),
                      '\n'.join([
                                ' '.join([('%7.6f' % x) for x in row])
