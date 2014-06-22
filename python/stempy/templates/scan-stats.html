@@ -5,10 +5,11 @@
 
         <p>
         <center>
-        <a href="#scores">Scores</a>
+        <a href="#num-sites">Sites</a>
+        | <a href="#scores">Scores</a>
         | <a href="#positions">Positions</a>
         | <a href="#sequences">Sequences</a>
-        | <a href="#num-occurrences">Occurrences</a>
+        | <a href="#interactions">Interactions</a>
         </center>
         </p>
         
@@ -18,6 +19,25 @@
         averaging {{ '%.1f' % (num_bases / num_seqs) }} base pairs in length. There are
         {{ num_sites }} predicted sites for {{ num_motifs }} motifs averaging 1 binding site every
         {{ '%d' % (num_bases / num_sites) }} base pairs.
+        <p>
+        Each binding site has a Z-score associated with it.
+        The Z-score is an estimate of how confidently STEME predicts this site
+        is a binding site.  A Z-score of 1 means STEME is sure that the site is
+        a binding site.
+        A Z-score of 0.5 means STEME thinks the site is equally likely to be a binding site
+        or background genomic sequence.
+        The Z-score is calculated from how well the site
+        matches the motif and how well it fits STEME's background model.
+        
+        <p>
+        <hr>
+        <h2 id="num-sites">Number of sites</h2>
+        <img src="scan-occs-by-motif.png" alt="Scan number of sites by motif image is missing!"/>
+        <br>
+        The number of sites for each motif. The number of sites above the Z-score threshold
+        is shown. Also shown is the fraction of the number of sites that is the sum of
+        the Z-scores for all the sites. This is the expectation of the
+        number of sites under STEME's model.
         
         <p>
         <hr>
@@ -26,22 +46,11 @@
         <img src="scan-legend.png" alt="Legend scores image is missing!"/>
         <br>
         The Z-scores for the predicted sites segregated by motif.
-        The sites are sorted by Z-score. The
-        Z-score is an estimate of how confidently STEME predicts this site is a binding site.
-        A Z-score of 1 would mean STEME is sure that the site is a binding site.
-        The Z-score is calculated from how well the
-        site matches the motif and how well it fits STEME's background model.
-        The plot allows us to compare how strong each motif's predicted binding sites are.
+        The sites are sorted by Z-score.
+        This plot allows us to compare how strong each motif's predicted binding sites are.
         Vaguer motifs with lower information
         contents tend to have difficulty achieving high Z-scores. In these cases a perfect match
         may not produce a high Z-score.
-        
-        <p>
-        <hr>
-        <h2 id="num-occurrences">Number of occurrences</h2>
-        <img src="scan-occs-by-motif.png" alt="Scan number of occurrences by motif image is missing!"/>
-        <br>
-        The number of occurrences for each motif.
         
         <p>
         <hr>
@@ -60,32 +69,16 @@
         
         <p>
         <hr>
-        <h2 id="sequences">Sequences</h2>
+        <h2 id="sequences">Sequence coverage</h2>
         <img src="scan-seq-coverage.png" alt="Scan sequence coverage image is missing!"/>
         <img src="scan-legend.png" alt="Legend scores image is missing!"/>
         <br>
-        The sequence coverage by motif: how many sequences have at least one site as a function
-        of Z-score threshold.
-        <img src="scan-sequences.png" alt="Scan sequences image is missing!"/>
-        <img src="scan-legend-marker.png" alt="Legend scores image is missing!"/>
-        <br>
-        This plot shows the density of predicted sites for each sequence. Each sequence is
-        represented as one x-value. The sequences are presented in the same order that they
-        are in the original STEME FASTA input file. Each marker represents the density of
-        sites for a particular motif in that sequence. The density of sites is the number
-        of predicted sites per base pair in the sequence. This plot allows us to see if there
-        are certain sequences which have a concentration of a particular motif's sites. We use
-        the density of sites rather than a count to give a fair comparison between sequences
-        of different lengths.
-        <img src="scan-lengths.png" alt="Scan sequence lengths image is missing!"/>
-        <br>
-        This plot shows the sequence lengths. The lengths are scatter plotted in the
-        same order as in the plot above (and in the original input FASTA file), they are
-        also line plotted in green in order of size.
+        The sequence coverage by motif: how many sequences have at least one site at any given
+        Z-score.
         
         <p>
         <hr>
-        <h2 id="bestZ">Co-occurrences</h2>
+        <h2 id="interactions">Interactions</h2>
         <img src="scan-best-Z.png" alt="Scan best Z image is missing!"/>
         <img src="scan-cooccurrences.png" alt="Scan co-occurrences image is missing!"/>
         <br>

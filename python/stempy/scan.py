@@ -211,7 +211,7 @@ def calculate_num_sites_per_base(occs, seq_infos):
 
 
 def plot_num_sites_per_seq(num_sites_per_base, **kwargs):
-    return pylab.scatter(
+    return pylab.plot(
         numpy.arange(len(num_sites_per_base)),
         num_sites_per_base,
         **kwargs
@@ -229,9 +229,9 @@ def adjust_sequence_xaxis(axes, seq_infos):
 def calculate_per_motif_density(motifs, by_motif, seq_infos):
     """Calculate the sequence site density per motif.
     """
-    num_sites_per_base = dict()
-    for motif in motifs:
-        num_sites_per_base[motif] = calculate_num_sites_per_base(
+    num_sites_per_base = numpy.empty((len(motifs), len(seq_infos)))
+    for m, motif in enumerate(motifs):
+        num_sites_per_base[m] = calculate_num_sites_per_base(
             by_motif[motif], seq_infos)
     return num_sites_per_base
 
@@ -262,6 +262,22 @@ def hier_cluster_and_permute(matrix):
 
 
 def plot_seq_coverage(best_Z, format_cycler):
+    """Plot what proportion of sequences have sites for each motif at
+    each Z-score threshold."""
+    lines = []
+    for i, motif_best_Z in enumerate(best_Z):
+        sorted_best_Z = numpy.sort(motif_best_Z)
+        first_non_zero = bisect.bisect(sorted_best_Z, 0)
+        lines.append(pylab.plot(
+            numpy.arange(best_Z.shape[1] - first_non_zero),
+            sorted_best_Z[first_non_zero:][::-1],
+            **format_cycler(i)))
+    pylab.ylabel('Z')
+    pylab.xlabel('sequences')
+    return lines
+
+
+def plot_seq_coverage_lines(best_Z, format_cycler):
     """Plot what proportion of sequences have sites for each motif at
     each Z-score threshold."""
     lines = []
@@ -343,9 +359,12 @@ def plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler):
     lines = []
     num_sites_per_base = calculate_per_motif_density(
         motifs, by_motif, seq_infos)
-    for i, motif in enumerate(motifs):
+    overall_site_density = num_sites_per_base.sum(axis=0)
+    sortidx = overall_site_density.argsort()
+    for m, motif in enumerate(motifs):
+        num_sites_per_base[m].sort()
         lines.append(plot_num_sites_per_seq(
-            num_sites_per_base[motif], label=motif, **format_cycler(i)))
+            num_sites_per_base[m,::-1], label=motif, **format_cycler(m)))
     # pylab.gca().set_yscale('log')
     pylab.ylim(ymin=0)
     pylab.ylabel('sites per base')
@@ -387,21 +406,26 @@ def plot_occs_by_motif(by_motif):
     expected = [(len(occs), name) for name, occs in by_motif.iteritems()]
     sizes.sort()
     bar_positions = numpy.arange(len(sizes))
+    num_occs = numpy.asarray([s for s, e, n in sizes])
+    total_Z = numpy.asarray([e for s, e, n in sizes])
     pylab.barh(
-        bar_positions+.2,
-        numpy.asarray([s for s, e, n in sizes]),
-        height=.4,
+        bar_positions,
+        num_occs,
+        #left=total_Z,
+        height=.8,
         align='center',
-        label='Total occurrences',
+        label='Sites',
         color='blue',
     )
     pylab.barh(
-        bar_positions-.2,
-        numpy.asarray([e for s, e, n in sizes]),
-        height=.4,
+        bar_positions,
+        total_Z,
+        height=.8,
         align='center',
         label='Total Z',
-        color='green',
+        color='blue',
+        edgecolor='white',
+        hatch='/',
     )
     pylab.yticks(bar_positions, [n for x, e, n in sizes])
     pylab.ylim(ymin=-.5, ymax=len(sizes) - .5)
@@ -487,15 +511,15 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
 
     # Scan sequences
     fig = pylab.figure(figsize=(6, 4))
-    lines = plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler_marker)
+    lines = plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler)
     savefig('scan-sequences', options)
     pylab.close()
 
     # Scan legend with markers
-    fig = pylab.figure(figsize=(4.25, 4))
-    pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
-    savefig('scan-legend-marker', options)
-    pylab.close()
+    #fig = pylab.figure(figsize=(4.25, 4))
+    #pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
+    #savefig('scan-legend-marker', options)
+    #pylab.close()
 
     # Scan lengths
     fig = pylab.figure(figsize=(6, 4))
@@ -539,6 +563,7 @@ def create_html_output(dataset_name, motifs, occurrences, by_motif, seq_infos,
             'num_motifs': len(motifs),
             'num_seqs': len(seq_infos),
             'num_bases': num_bases,
+            'options': options,
         }
         f.write(template.render(**variables))
 
