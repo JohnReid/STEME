@@ -436,12 +436,15 @@ def plot_occs_by_motif(by_motif):
 def savefig(tag, options):
     """Save a figure to the results directory.
     """
-    pylab.savefig(os.path.join(options.results_dir, '%s.png' % tag))
+    pylab.savefig(os.path.join(options.results_dir, 'scan-stats', '%s.png' % tag))
 
 
 def create_figures(motifs, occs, by_motif, seq_infos, options):
     """Create figures.
     """
+
+    from stempy import ensure_dir_exists
+    ensure_dir_exists(os.path.join(options.results_dir, 'scan-stats'))
 
     # Size of figlegend
     if len(motifs) > 30:
