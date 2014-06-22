@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block title %}Spacing analysis{% endblock %}
+{% block body %}
+
+  <p>
+  <center>
+  <a href="#pairs">Motif pairs</a>
+  </center>
+  </p>
+
+  The spacing between the sites of each pair of motifs has been examined. A statistical test
+  has been used to determine which spacings are "least random" in some sense. The outcome of
+  this test is a measure of the evidence in favour of non-randomness. This evidence is given
+  in the plots below on a (natural) logarithmic scale. The motif pairs with the
+  strongest evidence are presented first. Additionally the total number of pairs of sites
+  taken into account is presented and the names of the primary and secondary motifs.
+
+  <p>
+  Each site can be on either strand of DNA and upstream or downstream of the other site.
+  This gives four different combinations for any pair of sites. We display each
+  combination separately but the statistics are calculated across all four.
+
+  <p>
+  The way to read the plots is to imagine the primary motif placed inbetween the two
+  columns. The histograms on the left represent the secondary sites that are upstream
+  of the primary site and on the right the downstream sites are represented. The top
+  histograms represent the sites that are on the same strand, the bottom histograms
+  represent the sites that are on the other strand.
+
+  
+  <div id="pairs">
+  {% for log_evidence, (motif1, motif2) in log_evidences if filenames[(motif1, motif2)] %}
+    <div id="Pair: {{ motif1 }} - {{ motif2 }}">
+    <hr>
+    <img src="{{ "%s.png" % filenames[(motif1, motif2)] }}" alt="Logo image is missing!"/><br>
+    <a href="{{ "%s.eps" % filenames[(motif1, motif2)] }}">Download</a> figure in Encapsulated PostScript format.<br>
+    </div>
+    <p>
+  {% endfor %}
+  <hr>
+  </div>
+  
+  
+  
+{% endblock %}

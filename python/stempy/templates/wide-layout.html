@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<title>STEME</title>
+<title>{% block title %}STEME{% endblock %}</title>
 <link rel=stylesheet type=text/css href="static/style.css">
 
 <div id="container">
 
   <div id="header">
-    <center><h1>STEME</h1></center>
+    <center><h1>{{ self.title() }}</h1></center>
   </div>
   <p>
   

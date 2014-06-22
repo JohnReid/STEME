@@ -52,6 +52,16 @@ except AttributeError:
         'Could not ask logging system to capture warnings. Old logging module?')
 
 
+def html_copy_static(static_dir):
+    """Copy the static stylesheet to the given directory."""
+    # copy the static info
+    from pkg_resources import resource_filename
+    import shutil
+    stylesheet_filename = resource_filename('stempy', 'static/style.css')
+    ensure_dir_exists(static_dir)
+    shutil.copy(stylesheet_filename, static_dir)
+
+
 def add_options(option_parser):
     """
     Add options for STEME to the option parser.

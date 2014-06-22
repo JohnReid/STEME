@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 #
-# Copyright John Reid 2012, 2013
+# Copyright John Reid 2012, 2013, 2014
 #
 
 """
-Parses a motif file and creates a reStructuredText file with
+Parses a motif file and creates a reStructuredText and an html file containing
 the information and logos.
 """
 
@@ -12,6 +12,8 @@ import logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger()
+
 import os
 import stempy
 from stempy.meme_parse import do_parse_and_extract
@@ -38,21 +40,31 @@ parser.add_option(
     help="Create EPS logo as well as PNG",
 )
 options, args = parser.parse_args()
-stempy.ensure_dir_exists(options.output_dir)
+logo_dir = os.path.join(options.output_dir, 'logos')
+stempy.ensure_dir_exists(logo_dir)
 
 
+#
+# Parse the motifs
+#
 motifs_filename = args[0]
 extracted = do_parse_and_extract(open(motifs_filename).read())
+
+
+#
+# Write the reStructuredText
+#
 out_filename = os.path.join(options.output_dir, 'motifs.rst')
+filenames = dict()
 with open(out_filename, 'w') as out:
-    logging.info('File: %s', motifs_filename)
+    logger.info('File: %s', motifs_filename)
     print_heading(out, 'Motifs', '-')
     print >>out, 'Filename = %s\n' % motifs_filename
     print >>out, 'Alphabet = %s\n' % extracted.alphabet
     print >>out, 'Background frequencies = %s\n' % extracted.back_freqs
     print >>out, 'Strands = %s\n' % ' '.join(extracted.strands)
     for i, motif in enumerate(extracted.motifs):
-        logging.info('Motif %2d: %s', i, motif.name)
+        logger.info('Motif %2d: %s', i, motif.name)
         print_heading(
             out,
             '%d: %s%s' % (
@@ -70,10 +82,39 @@ with open(out_filename, 'w') as out:
             stempy.logo(
                 motif.letter_probs.values,
                 logo_tag,
-                d=options.output_dir,
+                d=logo_dir,
                 make_png=True,
                 make_eps=options.eps,
                 write_title=False,
                 show_fineprint=False)
-            print >>out, '\n.. image:: logo-%s.png' % logo_tag
+            filenames[motif.name] = os.path.join(logo_dir, 'logo-' + logo_tag + '.png')
+            print >>out, '\n.. image:: %s' % filenames[motif.name]
             print >>out
+
+
+#
+# Make HTML page
+#
+try:
+    from jinja2 import Environment, PackageLoader
+    env = Environment(loader=PackageLoader('stempy', 'templates'))
+    template = env.get_template('motifs.html')
+
+    # Copy the static info
+    static_dir = os.path.join(options.output_dir, 'static')
+    stempy.html_copy_static(static_dir)
+
+    # write the HTML
+    filename = os.path.join(options.output_dir, 'motifs.html')
+    logger.info('Writing motifs as HTML to %s', filename)
+    with open(filename, 'w') as f:
+        variables = {
+            'motifs_filename': motifs_filename,
+            'extracted': extracted,
+            'filenames': filenames,
+        }
+        f.write(template.render(**variables))
+
+except ImportError, e:
+    logger.warning('Import failed, could not write HTML:\n%s', str(e))
+

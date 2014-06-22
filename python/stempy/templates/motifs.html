@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Motifs{% endblock %}
+{% block body %}
+
+  <div id="motifs">
+  {% for motif in extracted.motifs %}
+    <div id="{{ "%s%s" % (motif.name, motif.altname and "(%s)" % motif.altname or "") }} )">
+    <hr>
+    <h2>{{ motif.name }}</h2>
+    <img src="{{ "%s" % filenames[motif.name] }}" alt="Logo image is missing!"/><br>
+    Motif of width {{ motif.letter_probs.w }} base pairs built from
+    {{ motif.letter_probs.nsites }} sites.
+    {{ 'E-value = %s' % motif.letter_probs.E }}
+    </div>
+    <p>
+  {% endfor %}
+  <hr>
+  </div>
+
+  <p>
+  Filename: {{ motifs_filename }} <br>
+  Alphabet: {{ extracted.alphabet }} <br>
+  Background frequencies: {{ extracted.back_freqs }} <br>
+  Strands: {{ ', '.join(extracted.strands) }} <br>
+  
+  
+{% endblock %}

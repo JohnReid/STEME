@@ -10,6 +10,7 @@ Code to analyse results of STEME PWM scanning.
 import logging
 logger = logging.getLogger(__name__)
 
+from . import html_copy_static
 import os
 import pyicl
 import pylab
@@ -547,13 +548,8 @@ def create_html_output(dataset_name, motifs, occurrences, by_motif, seq_infos,
     template = env.get_template('scan-stats.html')
 
     # copy the static info
-    from pkg_resources import resource_filename
-    from stempy import ensure_dir_exists
-    import shutil
     static_dir = os.path.join(options.results_dir, 'static')
-    stylesheet_filename = resource_filename('stempy', 'static/style.css')
-    ensure_dir_exists(static_dir)
-    shutil.copy(stylesheet_filename, static_dir)
+    html_copy_static(static_dir)
 
     # write the HTML
     filename = os.path.join(options.results_dir, 'scan-stats.html')

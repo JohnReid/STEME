@@ -1,5 +1,5 @@
 #
-# Copyright John Reid 2012
+# Copyright John Reid 2012, 2013, 2014
 #
 
 
@@ -45,13 +45,13 @@ def add_options(parser):
 
 def spacing_idx(max_distance, distance, upstream, same_strand):
     """Calculates an index into a spacing array.
-    
+
     Args:
         max_distance: The maximum distance represented in the spacing array.
         distance: The distance to calculate the index for (should be in [0, max_distance].
         upstream: True if the secondary occurrence upstream of the primary occurrence.
         same_strand: True if the secondary occurrence on the same strand as the primary occurrence.
-    
+
     Returns:
         An index in [0, 4*(max_distance+1)].
     """
@@ -161,7 +161,7 @@ def calc_multinomial_ln_likelihood_dirichlet_prior(obs, alpha):
 
 def calc_llr_statistic(obs, alpha):
     """Calculates the ratio of evidence in favour of a Dirichlet prior
-    defined by the alphas over a uniform distribution. 
+    defined by the alphas over a uniform distribution.
     """
     N = obs.sum()
     alpha0 = alpha.sum()
@@ -238,7 +238,7 @@ def make_primary_counting_handler(spacings):
 def make_pair_handler_from_primary_handler(primary_handler, ignore_close_to_end, options):
     """Makes a handler that considers a pair of instances in both configurations (primary, secondary)
     and (secondary, primary).
-    
+
     The handler can choose to ignore those pairs that couldn't be counted in pair statistics
     as they are too close to the beginning or end of a sequence.
     """
