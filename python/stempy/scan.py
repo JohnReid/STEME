@@ -19,8 +19,8 @@ import bisect
 from cookbook.named_tuple import namedtuple
 from collections import defaultdict
 from itertools import ifilter
-from cookbook.pylab_utils import pylab_context_ioff, create_format_cycler, \
-    simple_marker_styles
+from cookbook.pylab_utils import pylab_context_ioff, create_format_cycler
+# from cookbook.pylab_utils import simple_marker_styles
 
 
 SeqInfo = namedtuple('SeqInfo', 'name length')
@@ -154,7 +154,7 @@ def plot_scores_per_motif(motifs, by_motif, format_cycler):
         lines.append(
             pylab.plot(
                 numpy.arange(len(occs)),
-                #numpy.linspace(0, 1, num=len(occs)),
+                # numpy.linspace(0, 1, num=len(occs)),
                 [occ.Z for occ in occs],
                 label=motif,
                 **fmt
@@ -238,8 +238,9 @@ def calculate_per_motif_density(motifs, by_motif, seq_infos):
 
 
 def calculate_motif_best_Z_per_sequence(motifs, by_motif, numseqs):
-    # A numpy array indexed by motif, then sequence representing the best score
-    # that motif had in that sequence
+    """Calculate a numpy array indexed by motif, then sequence
+    that represents the best score that motif had in that sequence
+    """
     result = numpy.zeros((len(motifs), numseqs))
     for m, motif in enumerate(motifs):
         result_row = result[m]
@@ -302,20 +303,20 @@ def plot_best_Z(motifs, best_Z):
 
     # Cluster Y axis
     Y = hier.centroid(best_Z)
-    axdendro = fig.add_axes([0.01,0.02,0.18,0.96])
+    axdendro = fig.add_axes([0.01, 0.02, 0.18, 0.96])
     axdendro.set_xticks([])
     axdendro.set_frame_on(False)
     dendro = hier.dendrogram(Y, labels=motifs, orientation='right')
-    best_Z_permuted = best_Z[dendro['leaves'],:]
+    best_Z_permuted = best_Z[dendro['leaves'], :]
 
     # Plot matrix
-    axmatrix = fig.add_axes([0.4,0.02,0.5,0.96])
+    axmatrix = fig.add_axes([0.4, 0.02, 0.5, 0.96])
     im = axmatrix.matshow(best_Z_permuted, aspect='auto', origin='lower')
     axmatrix.set_xticks([])
     axmatrix.set_yticks([])
 
     # Plot colorbar
-    axcolor = fig.add_axes([0.91,0.02,0.02,0.96])
+    axcolor = fig.add_axes([0.91, 0.02, 0.02, 0.96])
     pylab.colorbar(im, cax=axcolor)
 
 
@@ -324,30 +325,27 @@ def plot_cooccurrences(motifs, best_Z):
     """
     import scipy.cluster.hierarchy as hier
     M = len(motifs)
-    best_Z_thresh = best_Z > .6
     cooccurrences = numpy.ones((M, M))
     for m1 in xrange(M):
-        #m1seqs = best_Z_thresh[m1]
         for m2 in xrange(M):
-            #m2seqs = best_Z_thresh[m2]
-            #both = sum(numpy.logical_and(m1seqs, m2seqs))
-            #cooccurrences[m1,m2] = both/float(sum(m2seqs))
-            cooccurrences[m1,m2] = numpy.sqrt(sum(best_Z[m1] * best_Z[m2])) \
+            # both = sum(numpy.logical_and(m1seqs, m2seqs))
+            # cooccurrences[m1,m2] = both/float(sum(m2seqs))
+            cooccurrences[m1, m2] = numpy.sqrt(sum(best_Z[m1] * best_Z[m2])) \
                 / numpy.linalg.norm(best_Z[m2])
     Y = hier.centroid(cooccurrences)
     index = hier.fcluster(Y, -1) - 1
-    cooccurrences = cooccurrences[index,:]
-    cooccurrences = cooccurrences[:,index]
+    cooccurrences = cooccurrences[index, :]
+    cooccurrences = cooccurrences[:, index]
     pylab.pcolor(cooccurrences)
     pylab.colorbar()
     ax = pylab.gca()
     ax.set_xticks([])
-    #ax.set_xticks(.5 + numpy.arange(M))
-    #ax.set_xticklabels(motifs)
+    # ax.set_xticks(.5 + numpy.arange(M))
+    # ax.set_xticklabels(motifs)
     ax.set_yticks(.5 + numpy.arange(M))
     ax.set_yticklabels(numpy.asarray(motifs)[index])
-    ax.set_xlim((0,M))
-    ax.set_ylim((0,M))
+    ax.set_xlim((0, M))
+    ax.set_ylim((0, M))
     for line in ax.yaxis.get_ticklines():
         line.set_markersize(0)
     pylab.gcf().subplots_adjust(left=.27, bottom=.02, top=.98, right=.99)
@@ -360,12 +358,12 @@ def plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler):
     lines = []
     num_sites_per_base = calculate_per_motif_density(
         motifs, by_motif, seq_infos)
-    overall_site_density = num_sites_per_base.sum(axis=0)
-    sortidx = overall_site_density.argsort()
+    # overall_site_density = num_sites_per_base.sum(axis=0)
+    # sortidx = overall_site_density.argsort()
     for m, motif in enumerate(motifs):
         num_sites_per_base[m].sort()
         lines.append(plot_num_sites_per_seq(
-            num_sites_per_base[m,::-1], label=motif, **format_cycler(m)))
+            num_sites_per_base[m, ::-1], label=motif, **format_cycler(m)))
     # pylab.gca().set_yscale('log')
     pylab.ylim(ymin=0)
     pylab.ylabel('sites per base')
@@ -404,7 +402,7 @@ def plot_occs_by_motif(by_motif):
     sizes = [
         (len(occs), sum(occ.Z for occ in occs), name)
         for name, occs in by_motif.iteritems()]
-    expected = [(len(occs), name) for name, occs in by_motif.iteritems()]
+    # expected = [(len(occs), name) for name, occs in by_motif.iteritems()]
     sizes.sort()
     bar_positions = numpy.arange(len(sizes))
     num_occs = numpy.asarray([s for s, e, n in sizes])
@@ -412,7 +410,7 @@ def plot_occs_by_motif(by_motif):
     pylab.barh(
         bar_positions,
         num_occs,
-        #left=total_Z,
+        # left=total_Z,
         height=.8,
         align='center',
         label='Sites',
@@ -437,7 +435,8 @@ def plot_occs_by_motif(by_motif):
 def savefig(tag, options):
     """Save a figure to the results directory.
     """
-    pylab.savefig(os.path.join(options.results_dir, 'scan-stats', '%s.png' % tag))
+    pylab.savefig(
+        os.path.join(options.results_dir, 'scan-stats', '%s.png' % tag))
 
 
 def create_figures(motifs, occs, by_motif, seq_infos, options):
@@ -461,78 +460,82 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
     # Format cycler for line plots
     format_cycler = create_format_cycler(
         linestyle=['--', '-.', '-', ':'],
-        c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+        c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
+           "#D55E00", "#CC79A7"))
 
     # Format cycler for marker plots
-    format_cycler_marker = create_format_cycler(
-        marker=simple_marker_styles,
-        c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+    # format_cycler_marker = create_format_cycler(
+    #    marker=simple_marker_styles,
+    #    c=("#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2",
+    #       "#D55E00", "#CC79A7"))
 
     # Scan scores
-    fig = pylab.figure(figsize=(6, 4))
+    pylab.figure(figsize=(6, 4))
     lines = plot_scores_per_motif(motifs, by_motif, format_cycler)
     savefig('scan-scores', options)
     pylab.close()
 
     # Scan legend
-    fig = pylab.figure(figsize=(4.25, 4))
+    pylab.figure(figsize=(4.25, 4))
     pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
     savefig('scan-legend', options)
     pylab.close()
 
     # Best Z for each motif/sequence combination
-    fig = pylab.figure(figsize=(4.25, 4))
-    best_Z = calculate_motif_best_Z_per_sequence(motifs, by_motif, len(seq_infos))
+    pylab.figure(figsize=(4.25, 4))
+    best_Z = calculate_motif_best_Z_per_sequence(
+        motifs, by_motif, len(seq_infos))
     plot_best_Z(motifs, best_Z)
     savefig('scan-best-Z', options)
     pylab.close()
 
     # Scan motif cooccurrences
-    fig = pylab.figure(figsize=(4.25, 4))
-    #pylab.figlegend(lines, motifs, 'center')
+    pylab.figure(figsize=(4.25, 4))
+    # pylab.figlegend(lines, motifs, 'center')
     plot_cooccurrences(motifs, best_Z)
     savefig('scan-cooccurrences', options)
     pylab.close()
 
     # Scan positions
-    fig = pylab.figure(figsize=(6, 4))
+    pylab.figure(figsize=(6, 4))
     lines = plot_site_positions(motifs, occs, by_motif, seq_infos,
                                 format_cycler)
     savefig('scan-positions', options)
     pylab.close()
 
     # Scan legend with all
-    fig = pylab.figure(figsize=(4.25, 4))
-    pylab.figlegend(lines, ['ALL MOTIFS'] + motifs, 'center', prop=figlegendprops)
+    pylab.figure(figsize=(4.25, 4))
+    pylab.figlegend(
+        lines, ['ALL MOTIFS'] + motifs, 'center', prop=figlegendprops)
     savefig('scan-legend-with-all', options)
     pylab.close()
 
     # Sequence coverage
-    fig = pylab.figure(figsize=(6, 4))
+    pylab.figure(figsize=(6, 4))
     plot_seq_coverage(best_Z, format_cycler)
     savefig('scan-seq-coverage', options)
     pylab.close()
 
     # Scan sequences
-    fig = pylab.figure(figsize=(6, 4))
+    pylab.figure(figsize=(6, 4))
     lines = plot_seq_distribution(motifs, by_motif, seq_infos, format_cycler)
     savefig('scan-sequences', options)
     pylab.close()
 
     # Scan legend with markers
-    #fig = pylab.figure(figsize=(4.25, 4))
-    #pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
-    #savefig('scan-legend-marker', options)
-    #pylab.close()
+    # fig = pylab.figure(figsize=(4.25, 4))
+    # pylab.figlegend(lines, motifs, 'center', prop=figlegendprops)
+    # savefig('scan-legend-marker', options)
+    # pylab.close()
 
     # Scan lengths
-    fig = pylab.figure(figsize=(6, 4))
+    pylab.figure(figsize=(6, 4))
     plot_seq_lengths(seq_infos)
     savefig('scan-lengths', options)
     pylab.close()
 
     # Scan occurrences by motif
-    fig = pylab.figure(figsize=(6, len(by_motif) / 4.))
+    pylab.figure(figsize=(6, len(by_motif) / 4.))
     pylab.subplots_adjust(left=.3, bottom=.1, right=.96, top=.98)
     plot_occs_by_motif(by_motif)
     savefig('scan-occs-by-motif', options)
@@ -574,8 +577,12 @@ def create_html_output(dataset_name, motifs, occurrences, by_motif, seq_infos,
 
 def write_seq_centric_stats(out, motifs, occurrences, seq_infos, options):
     """Write sequence-centric stats in CSV format to a file."""
-    zero_num = lambda: numpy.zeros(len(seq_infos), dtype=int)
-    zero_exp = lambda: numpy.zeros(len(seq_infos), dtype=float)
+    def zero_num():
+        return numpy.zeros(len(seq_infos), dtype=int)
+
+    def zero_exp():
+        return numpy.zeros(len(seq_infos), dtype=float)
+
     num_hits = defaultdict(zero_num)  # Number of hits
     exp_hits = defaultdict(zero_exp)  # Expected hits
     for occ in occurrences:
