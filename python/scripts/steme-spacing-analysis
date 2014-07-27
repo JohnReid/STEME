@@ -63,6 +63,7 @@ seq_lengths_filename = os.path.join(
 # Now we know where we will write output to, start a log file
 #
 output_dir = os.path.join(options.results_dir, 'spacings', 'max-%d' % options.max_distance)
+rel_output_dir = os.path.join('spacings', 'max-%d' % options.max_distance)
 ensure_dir_exists(output_dir)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 log_file_handler = logging.FileHandler(
@@ -116,7 +117,7 @@ with pylab_context_ioff():
         if not options.report_inverse and (motif2, motif1) in already_examined:
             continue
         spacing_counts = spacings[(motif1, motif2)]
-        filename = ''
+        rel_filename = ''
         if log_evidence >= options.log_evidence_plot_threshold:
             tag = '%03d-%s-%s' % (rank, motif1, motif2)
             plot_spacings(options.max_distance, spacing_counts)
@@ -127,14 +128,15 @@ with pylab_context_ioff():
             pylab.figtext(.75, .92, 'total=%d' %
                           spacing_counts.sum(), ha='center')
             filename = os.path.join(output_dir, tag)
+            rel_filename = os.path.join(rel_output_dir, tag)
             pylab.savefig(filename + '.png')
             pylab.savefig(filename + '.eps')
             pylab.close()
         logger.info(
             'LLR:%8.1f; total:%6d; %30s - %-30s; bar chart: %s',
-            log_evidence, spacing_counts.sum(), motif1, motif2, filename
+            log_evidence, spacing_counts.sum(), motif1, motif2, rel_filename
         )
-        already_examined[(motif1, motif2)] = filename
+        already_examined[(motif1, motif2)] = rel_filename
 
 
 
