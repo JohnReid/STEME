@@ -10,27 +10,31 @@ MEME's EM algorithm is dominated by calculations of the form
 
 for some set :math:`T`.
 
-STEME approximates these sums by ignoring those :math:`n` for which :math:`\langle Z_n \rangle`
+STEME approximates these sums by ignoring those :math:`n` for which
+:math:`\langle Z_n \rangle`
 is small: :math:`T_\delta = \{ n : Z_n \ge \delta \}`.
 
-Another way to estimate these sums is importance sampling. Suppose :math:`f(n)` is
+Another way to estimate these sums is importance sampling. Suppose
+:math:`f(n)` is
 a uniform distribution over :math:`T`, then
 .. math::
 
     $\sum_{n \in T\} \langle X_n \rangle$
     = |T| \bigg\langle \langle Z_n \rangle \bigg\rangle_{f(.)}
 
-where the outer expectation is with respect to :math:`f(.)` and the inner expectation
+where the outer expectation is with respect to :math:`f(.)` and
+the inner expectation
 is with respect to MEME's model.
 
 """
 
 import logging
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-from itertools import imap
 import pandas as pd
 import pandas.rpy.common as com
 import matplotlib as mpl
@@ -41,13 +45,11 @@ import numpy as npy
 import numpy.random as rdm
 from numpy import log, exp
 import rpy2.robjects.lib.ggplot2 as ggplot2
-import rpy2.robjects as ro
-from rpy2.robjects.vectors import IntVector, FloatVector, StrVector
 from rpy2.robjects.packages import importr
 grdevices = importr('grDevices')
 
 
-#ALLBASES = (seqan.DNA('A'), seqan.DNA('C'), seqan.DNA('G'), seqan.DNA('T'))
+# ALLBASES = (seqan.DNA('A'), seqan.DNA('C'), seqan.DNA('G'), seqan.DNA('T'))
 ALLBASES = tuple(map(seqan.DNA, 'ACGT'))
 SIGMA = len(ALLBASES)
 LOGQUARTER = log(.25)
@@ -78,15 +80,17 @@ def logo(dist, tag, make_png=False, make_eps=True, write_title=True):
 
 
 def uniform0orderloglikelihood(X):
-    """A likelihood that assigns 1/4 probability to each base at each position."""
+    """A likelihood that assigns 1/4 probability to each base at
+    each position."""
     return len(X) * LOGQUARTER
 
 
 def loglikelihoodforpwm(pwm):
     """Return a function that computes the log likelihood for the pwm."""
     logpwm = log(pwm)
+
     def loglikelihood(X):
-        return sum(logpwm[w,base.ordValue] for w, base in enumerate(X))
+        return sum(logpwm[w, base.ordValue] for w, base in enumerate(X))
     return loglikelihood
 
 
@@ -104,7 +108,7 @@ class ZnSumVisitor(object):
             Zn = self.Zncalculator(Xn)
             # Update sums
             for w, base in enumerate(Xn):
-                self.sums[w,base.ordValue] += Zn * it.numOccurrences
+                self.sums[w, base.ordValue] += Zn * it.numOccurrences
             # Have gone deep enough in index, truncate traversal
             return False
         else:
@@ -115,6 +119,7 @@ class ZnSumVisitor(object):
 def createZncalculator(pwm, lambda_):
     bsloglikelihoodfn = loglikelihoodforpwm(pwm)
     lambdaratio = lambda_ / (1. - lambda_)
+
     def calculateZn(X):
         logodds = bsloglikelihoodfn(X) - uniform0orderloglikelihood(X)
         return 1./(1 + 1/(lambdaratio * exp(logodds)))
@@ -148,20 +153,23 @@ runx1pwm = npy.array((
 runx1withpc = addpseudocounts(runx1pwm, numsites, pseudocount)
 W = len(runx1withpc)
 
-#logo(runx1pwm, 'runx1')
-#logo(runx1withpc, 'runx1-pc')
+# logo(runx1pwm, 'runx1')
+# logo(runx1withpc, 'runx1-pc')
 
-#seqs = seqan.StringDNASet(('AAAAAAAA', 'ACGTACGT', 'TATATATA'))
+# seqs = seqan.StringDNASet(('AAAAAAAA', 'ACGTACGT', 'TATATATA'))
 numbases, seqs, ids = seqan.readFastaDNA('T00759-small.fa')
 index = seqan.IndexStringDNASetESA(seqs)
 
+#
+# Calculate Zn exactly
+#
 calculateZn = createZncalculator(runx1withpc, lambda_)
 sumvisitor = ZnSumVisitor(W, calculateZn)
 seqan.traverse.topdownhistorytraversal(index.topdownhistory(), sumvisitor)
 print sumvisitor.sums
 trueZnsum = sumvisitor.sums[0].sum()
 print trueZnsum
-#logo(normalisepwm(sumvisitor.sums), 'learnt')
+# logo(normalisepwm(sumvisitor.sums), 'learnt')
 
 
 def countWmers(it, W, counts):
@@ -194,23 +202,28 @@ def bglikelihoodfn(w):
 
 
 class ImportanceSampler(object):
+    """Descends a suffix tree to importance sample a W-mer based on a
+    how likely each base is.
+    """
+
     def __init__(self, baselikelihoodfn, W, Wmercounts):
         self.W = W
         self.Wmercounts = Wmercounts
         self.baselikelihoodfn = baselikelihoodfn
 
     def __call__(self, it, likelihoodratio=1.):
+        """Descend the suffix tree.
+        """
         w = it.repLength
         if w >= self.W:
             return it, likelihoodratio
         else:
-            representative = it.representative
             # Descend each child to get Wmer counts
             counts = npy.zeros(SIGMA)
             for base in ALLBASES:
                 if it.goDown(base):
                     counts[base.ordValue] = Wmercounts[it.value.id]
-                    #logger.info('%s %d %f', base, Wmercount, likelihoodratio)
+                    # logger.info('%s %d %f', base, Wmercount, likelihoodratio)
                     it.goUp()
             freqs = counts.astype(float) / counts.sum()
             # Get the importance weights and combine with Wmer frequencies
@@ -218,17 +231,17 @@ class ImportanceSampler(object):
             impweights = self.baselikelihoodfn(w)
             weights = freqs * impweights
             samplingdist = weights / weights.sum()
-            #logger.info('%-10s: %s', representative, samplingdist)
+            # logger.info('%-10s: %s', representative, samplingdist)
             # Sample one of the bases
             sample = rdm.choice(ALLBASES, p=samplingdist)
             # Descend the sample
             wentDown = it.goDown(sample)
             assert wentDown
             # Calculate the updated likelihood ratio
-            likelihoodratioupdate = samplingdist[sample.ordValue] / freqs[sample.ordValue]
+            likelihoodratioupdate = \
+                samplingdist[sample.ordValue] / freqs[sample.ordValue]
             # recurse
             return self(it, likelihoodratio * likelihoodratioupdate)
-
 
 
 def sample(sampler, numsamples, **kwargs):
@@ -255,12 +268,14 @@ def estimatesum(samples):
 
 numsamples = 50000
 rdm.seed(1)
-samplerbs = ImportanceSampler(createpwmlikelihoodfn(runx1withpc), W, Wmercounts)
+samplerbs = ImportanceSampler(
+    createpwmlikelihoodfn(runx1withpc), W, Wmercounts)
 samplerbg = ImportanceSampler(bglikelihoodfn, W, Wmercounts)
 samplebs = sample(samplerbs, numsamples, model='BS')
 samplebg = sample(samplerbg, numsamples, model='BG')
 samples = pd.concat((samplebs, samplebg))
-samples.index = npy.arange(len(samples))  # re-index to avoid duplicate row.names in Rdf
+# re-index to avoid duplicate row.names in Rdf
+samples.index = npy.arange(len(samples))
 samplesgrouped = samples.groupby(['model'])
 variances = samplesgrouped['Zweighted'].aggregate(npy.var)
 print variances
@@ -269,17 +284,16 @@ print estimatesum(samples)
 print samplesgrouped['Zweighted'].aggregate(estimatesum)
 print trueZnsum
 
-#grdevices.png(file="sampled-Z.png", width=4, height=3, units="in", res=300)
+# grdevices.png(file="sampled-Z.png", width=4, height=3, units="in", res=300)
 rsamples = com.convert_to_r_dataframe(samples)
 pp = ggplot2.ggplot(rsamples) + \
     ggplot2.aes_string(x='Z', color='factor(model)') + \
     ggplot2.scale_colour_discrete(name="model") + \
     ggplot2.geom_density() + \
     ggplot2.scale_x_log10()
-    #ggplot2.scale_x_continuous(limits=FloatVector((0, 1)))
+# ggplot2.scale_x_continuous(limits=FloatVector((0, 1)))
 pp.plot()
-#grdevices.dev_off()
-
+# grdevices.dev_off()
 
 
 def makeestimate(sampler, numsamples, **kwargs):
@@ -288,7 +302,9 @@ def makeestimate(sampler, numsamples, **kwargs):
 
 
 def makeestimates(sampler, numsamples, numestimates, **kwargs):
-    estimates = [makeestimate(sampler, numsamples, **kwargs) for _ in xrange(numestimates)]
+    estimates = [
+        makeestimate(sampler, numsamples, **kwargs)
+        for _ in xrange(numestimates)]
     kwargs.update({
         'estimate': estimates,
         'numsamples': numsamples,
@@ -298,17 +314,20 @@ def makeestimates(sampler, numsamples, numestimates, **kwargs):
 
 def estimatebothsamplers(numsamples, numestimates):
     estimatesbs = makeestimates(
-        samplerbs, numsamples=numsamples, numestimates=numestimates, model='BS')
+        samplerbs,
+        numsamples=numsamples, numestimates=numestimates, model='BS')
     estimatesbg = makeestimates(
-        samplerbg, numsamples=numsamples, numestimates=numestimates, model='BG')
+        samplerbg,
+        numsamples=numsamples, numestimates=numestimates, model='BG')
     return pd.concat((estimatesbs, estimatesbg))
 
-#samplesizes = [10, 50, 100, 150, 300, 1000]
+# samplesizes = [10, 50, 100, 150, 300, 1000]
 samplesizes = [10, 50, 100]
-estimates = pd.concat((estimatebothsamplers(numsamples, 10) for numsamples in samplesizes))
+estimates = pd.concat(
+    (estimatebothsamplers(numsamples, 10) for numsamples in samplesizes))
 bp = estimates.boxplot(column=['estimate'], by=['numsamples', 'model'])
-#locs, labels = plt.xticks()
-#plt.xticks(locs, labels, rotation='vertical')
+# locs, labels = plt.xticks()
+# plt.xticks(locs, labels, rotation='vertical')
 plt.xticks(rotation='vertical')
 ax = plt.gca()
 xmin, xmax = ax.get_xbound()
@@ -319,4 +338,3 @@ plt.savefig('estimates.png')
 grouped = estimates.groupby(['numsamples', 'model'])
 grouped.aggregate(npy.var)
 grouped.aggregate(npy.mean)
-
