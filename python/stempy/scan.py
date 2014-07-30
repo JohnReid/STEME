@@ -295,19 +295,31 @@ def plot_seq_coverage_lines(best_Z, format_cycler):
     return lines
 
 
+def num_seq_clusters(num_seqs):
+    """A heuristic to choose a number of clusters for the sequences based on
+    how many motifs there are."""
+    return max(2, int(numpy.log(num_seqs)))
+
+
 def plot_best_Z(motifs, best_Z):
     """Plot the best Z for each motif in each sequence.
     """
     import scipy.cluster.hierarchy as hier
+    import scipy.cluster.vq as vq
     fig = pylab.gcf()
 
-    # Cluster Y axis
+    # Cluster (hiearchical) Y axis
     Y = hier.centroid(best_Z)
     axdendro = fig.add_axes([0.01, 0.02, 0.18, 0.96])
     axdendro.set_xticks([])
     axdendro.set_frame_on(False)
     dendro = hier.dendrogram(Y, labels=motifs, orientation='right')
     best_Z_permuted = best_Z[dendro['leaves'], :]
+
+    # K-means cluster X axis
+    xcentroid, xlabel = vq.kmeans2(
+        best_Z.T, k=num_seq_clusters(best_Z.shape[1]))
+    best_Z_permuted = best_Z_permuted[:, numpy.argsort(xlabel)]
 
     # Plot matrix
     axmatrix = fig.add_axes([0.4, 0.02, 0.5, 0.96])
@@ -320,18 +332,22 @@ def plot_best_Z(motifs, best_Z):
     pylab.colorbar(im, cax=axcolor)
 
 
-def plot_cooccurrences(motifs, best_Z):
+def plot_collinearity(motifs, best_Z):
     """Plot the cooccurrences of motifs.
     """
     import scipy.cluster.hierarchy as hier
+    # from scipy.stats import pearsonr
     M = len(motifs)
     cooccurrences = numpy.ones((M, M))
     for m1 in xrange(M):
         for m2 in xrange(M):
             # both = sum(numpy.logical_and(m1seqs, m2seqs))
             # cooccurrences[m1,m2] = both/float(sum(m2seqs))
-            cooccurrences[m1, m2] = numpy.sqrt(sum(best_Z[m1] * best_Z[m2])) \
+            cooccurrences[m1, m2] = \
+                numpy.sqrt(sum(best_Z[m1] * best_Z[m2])) \
                 / numpy.linalg.norm(best_Z[m2])
+            # rho, _ = pearsonr(best_Z[m1], best_Z[m2])
+            # cooccurrences[m1, m2] = rho
     Y = hier.centroid(cooccurrences)
     index = hier.fcluster(Y, -1) - 1
     cooccurrences = cooccurrences[index, :]
@@ -482,7 +498,7 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
     pylab.close()
 
     # Best Z for each motif/sequence combination
-    pylab.figure(figsize=(4.25, 4))
+    pylab.figure(figsize=(6, 4))
     best_Z = calculate_motif_best_Z_per_sequence(
         motifs, by_motif, len(seq_infos))
     plot_best_Z(motifs, best_Z)
@@ -490,10 +506,10 @@ def create_figures(motifs, occs, by_motif, seq_infos, options):
     pylab.close()
 
     # Scan motif cooccurrences
-    pylab.figure(figsize=(4.25, 4))
+    pylab.figure(figsize=(6, 4))
     # pylab.figlegend(lines, motifs, 'center')
-    plot_cooccurrences(motifs, best_Z)
-    savefig('scan-cooccurrences', options)
+    plot_collinearity(motifs, best_Z)
+    savefig('scan-collinearity', options)
     pylab.close()
 
     # Scan positions
@@ -566,6 +582,7 @@ def create_html_output(dataset_name, motifs, occurrences, by_motif, seq_infos,
             'num_seqs': len(seq_infos),
             'num_bases': num_bases,
             'options': options,
+            'num_seq_clusters': num_seq_clusters(len(seq_infos)),
         }
         f.write(template.render(**variables))
 

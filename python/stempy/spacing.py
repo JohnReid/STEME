@@ -11,13 +11,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 from cookbook.named_tuple import namedtuple
-from scipy.special import gammaln, digamma
 import pyicl
 import numpy
 import pylab
-import os
 from collections import defaultdict
 from .scan import footprint
+from scipy.special import gammaln
 
 PairOccurrence = namedtuple('PairOccurrence', 'spacing seq pos strand')
 Spacing = namedtuple(
@@ -30,7 +29,8 @@ def add_max_distance_option(parser):
         "--max-distance",
         type=int,
         default=30,
-        help="Only look for occurrences of motifs up to MAX_DISTANCE base pairs apart",
+        help="Only look for occurrences of motifs up to MAX_DISTANCE "
+        "base pairs apart",
         metavar="MAX_DISTANCE"
     )
 
@@ -47,10 +47,13 @@ def spacing_idx(max_distance, distance, upstream, same_strand):
     """Calculates an index into a spacing array.
 
     Args:
-        max_distance: The maximum distance represented in the spacing array.
-        distance: The distance to calculate the index for (should be in [0, max_distance].
-        upstream: True if the secondary occurrence upstream of the primary occurrence.
-        same_strand: True if the secondary occurrence on the same strand as the primary occurrence.
+        - max_distance: The maximum distance represented in the spacing array.
+          distance: The distance to calculate the index for (should be in
+          [0, max_distance]).
+        - upstream: True if the secondary occurrence upstream of the primary
+          occurrence.
+        - same_strand: True if the secondary occurrence on the same strand
+          as the primary occurrence.
 
     Returns:
         An index in [0, 4*(max_distance+1)].
@@ -98,7 +101,8 @@ def _test_idx_fns(max_distance):
         (max_distance, True, True),
     ):
         assert (distance, upstream, same_strand) == spacing_from_idx(
-            max_distance, spacing_idx(max_distance, distance, upstream, same_strand))
+            max_distance,
+            spacing_idx(max_distance, distance, upstream, same_strand))
 
 
 # Uncomment to test index functions
@@ -106,7 +110,8 @@ def _test_idx_fns(max_distance):
 
 
 def can_be_primary(max_distance, primary_footprint, secondary_len, seq_length):
-    """Is the primary motif too close to the boundaries of the sequence to be considered?
+    """Is the primary motif too close to the boundaries of the sequence
+    to be considered?
     """
     if max_distance + secondary_len > primary_footprint.first:
         return False
@@ -126,7 +131,8 @@ def calc_ln_n_choose(obs):
 
 
 def calc_multinomial_ln_likelihood_uniform_dist(obs):
-    """Calculates the log likelihood of the observed counts under a uniform multinomial distribution.
+    """Calculates the log likelihood of the observed counts under a uniform
+    multinomial distribution.
     """
     n = obs.sum()
     if 0 == n:
@@ -135,7 +141,8 @@ def calc_multinomial_ln_likelihood_uniform_dist(obs):
 
 
 def calc_ln_gamma_factor(obs, alpha):
-    """Calculates a factor involved in the likelihood of a multinomial distribution with a Dirichlet prior.
+    """Calculates a factor involved in the likelihood of a multinomial
+    distribution with a Dirichlet prior.
     """
     return (
         gammaln(alpha.sum())
@@ -146,7 +153,8 @@ def calc_ln_gamma_factor(obs, alpha):
 
 
 def calc_multinomial_ln_likelihood_dirichlet_prior(obs, alpha):
-    """Calculates the log likelihood of the observed counts under a Dirichlet prior.
+    """Calculates the log likelihood of the observed counts under a Dirichlet
+    prior.
     """
     return calc_ln_gamma_factor(obs, alpha) + calc_ln_n_choose(obs)
 
@@ -166,7 +174,8 @@ def calc_llr_statistic(obs, alpha):
     N = obs.sum()
     alpha0 = alpha.sum()
     D = len(obs)
-    return gammaln(alpha0) - gammaln(alpha0 + N) + (gammaln(alpha + obs) + gammaln(alpha)).sum() + N * numpy.log(D)
+    return gammaln(alpha0) - gammaln(alpha0 + N) + \
+        (gammaln(alpha + obs) + gammaln(alpha)).sum() + N * numpy.log(D)
 
 
 def plot_spacings(max_distance, spacing_counts):
@@ -188,8 +197,10 @@ def plot_spacings(max_distance, spacing_counts):
                 pylab.ylabel(
                     same_strand and 'Same strand' or 'Opposite orientation')
                 x = numpy.arange(-max_distance, 1)
-            y = [spacing_counts[spacing_idx(max_distance, int(abs(distance)), upstream, same_strand)]
-                 for distance in x]
+            y = [spacing_counts[spacing_idx(max_distance,
+                                            int(abs(distance)),
+                                            upstream,
+                                            same_strand)] for distance in x]
             pylab.bar(x, y, align='center', width=.5, color='grey')
             pylab.ylim(0, ymax)
             pylab.xlim(x[0] - .5, x[-1] + .5)
@@ -226,7 +237,12 @@ def yield_pairs(occurrences, seq_infos, options):
 def make_primary_counting_handler(spacings):
     """Returns a pair handling function that counts spacings.
     """
-    def handle_primary(max_distance, primary, secondary, distance, upstream, same_strand):
+    def handle_primary(max_distance,
+                       primary,
+                       secondary,
+                       distance,
+                       upstream,
+                       same_strand):
         """Update the spacings array.
         """
         idx = spacing_idx(max_distance, distance, upstream, same_strand)
@@ -235,12 +251,15 @@ def make_primary_counting_handler(spacings):
     return handle_primary
 
 
-def make_pair_handler_from_primary_handler(primary_handler, ignore_close_to_end, options):
-    """Makes a handler that considers a pair of instances in both configurations (primary, secondary)
-    and (secondary, primary).
+def make_pair_handler_from_primary_handler(primary_handler,
+                                           ignore_close_to_end,
+                                           options):
+    """Makes a handler that considers a pair of instances in both configurations
+    (primary, secondary) and (secondary, primary).
 
-    The handler can choose to ignore those pairs that couldn't be counted in pair statistics
-    as they are too close to the beginning or end of a sequence.
+    The handler can choose to ignore those pairs that couldn't be counted
+    in pair statistics as they are too close to the beginning or end of a
+    sequence.
     """
     def handle_pair(seq_length, occ1, footprint1, occ2, footprint2, distance):
         # are they on the same strand?
@@ -248,18 +267,26 @@ def make_pair_handler_from_primary_handler(primary_handler, ignore_close_to_end,
 
         # handle occ1 as the primary occurrence
         # check whether occ1 is too close to start or end to be a primary motif
-        if not ignore_close_to_end or can_be_primary(options.max_distance, footprint1, footprint2.size, seq_length):
+        if not ignore_close_to_end or can_be_primary(options.max_distance,
+                                                     footprint1,
+                                                     footprint2.size,
+                                                     seq_length):
             primary_handler(
-                options.max_distance, occ1, occ2, distance, occ1.strand == '-', same_strand)
+                options.max_distance, occ1, occ2, distance,
+                occ1.strand == '-', same_strand)
 
         # don't handle occ2 as the primary occurrence if it is the same motif
         # as the secondary occurrence
         if occ1.motif != occ2.motif:
             # handle occ2 as the primary occurrence
-            # check whether occ2 is too close to start or end to be a primary motif
-            if not ignore_close_to_end or can_be_primary(options.max_distance, footprint2, footprint1.size, seq_length):
+            # check whether occ2 is too close to start or end to be a primary
+            # motif
+            if not ignore_close_to_end or \
+                    can_be_primary(options.max_distance, footprint2,
+                                   footprint1.size, seq_length):
                 primary_handler(
-                    options.max_distance, occ2, occ1, distance, occ2.strand == '+', same_strand)
+                    options.max_distance, occ2, occ1, distance,
+                    occ2.strand == '+', same_strand)
 
     return handle_pair
 
@@ -280,8 +307,8 @@ def handle_pairs(occurrences, seq_infos, handler, options):
             # don't use yet - check which scripts call this.
             # they all need property in options
             # ignore homodimers if requested
-#            if options.ignore_homodimers and occ1.motif == occ2.motif:
-#                continue
+            # if options.ignore_homodimers and occ1.motif == occ2.motif:
+            #     continue
 
             footprint2 = footprint(occ2)
             if not footprint1.disjoint(footprint2):
@@ -325,7 +352,8 @@ def parse_spacings(f):
         upstream = 'U' == upstream
         result[primary, secondary].append(
             Spacing(primary=primary, secondary=secondary,
-                    same_strand=same_strand, upstream=upstream, distance=distance)
+                    same_strand=same_strand, upstream=upstream,
+                    distance=distance)
         )
     return result
 
@@ -336,7 +364,9 @@ spacing_header = '%30s %-25s %s %2s %4s' % (
 
 def spacing_str(spacing):
     return '%30s %-30s %s %2s %4d' % (
-        spacing.primary, spacing.secondary, spacing.same_strand and "S" or "C", spacing.upstream and "U" or "D", spacing.distance
+        spacing.primary, spacing.secondary,
+        spacing.same_strand and "S" or "C",
+        spacing.upstream and "U" or "D", spacing.distance
     )
 
 

@@ -1,7 +1,15 @@
 <!DOCTYPE html>
-<title>{% block title %}STEME{% endblock %}</title>
-<link rel=stylesheet type=text/css href="static/style.css">
+<html>
 
+<head>
+  <title>{% block title %}STEME{% endblock %}</title>
+  <link rel=stylesheet type=text/css href="static/style.css">
+  <script type="text/javascript"
+    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script>
+</head>
+
+<body>
 <div id="container">
 
   <div id="header">
@@ -12,6 +20,10 @@
   <div id="page" class=wide-page>
     {% block body %}{% endblock %}
   </div>
-  
+
 </div>
+</body>
+
+</html>
+  
   

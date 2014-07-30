@@ -15,22 +15,17 @@ import logging
 logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")
 from optparse import OptionParser
-from collections import defaultdict
 import os
-import pyicl
-import numpy
-import pylab
-import cPickle
 import sys
 from Bio import SeqIO
-from stempy.scan import parse_occurrences, load_occurrences
-from stempy.spacing import footprint, handle_pairs, parse_spacings, \
+from stempy.scan import load_occurrences
+from stempy.spacing import handle_pairs, \
     spacing_str, load_spacings, add_options, spacing_header, \
     PairOccurrence, make_pair_handler_from_primary_handler
 
 
 def found_pair_occurrence(spacing, primary, secondary):
-    pair_occ_str = '%s: %6d %7d %s' % (
+    pair_occ_str = '%s %6d %7d %s' % (
         spacing_str(spacing), primary.seq, primary.pos, primary.strand
     )
     logging.info(pair_occ_str)
@@ -59,11 +54,13 @@ def found_pair_occurrence(spacing, primary, secondary):
         SeqIO.write(pair_seq, pairs_fasta, "fasta")
 
 
-def handle_primary(max_distance, primary, secondary, distance, upstream, same_strand):
+def handle_primary(max_distance, primary, secondary, distance,
+                   upstream, same_strand):
     """Update the spacings array.
     """
     for spacing in spacings[primary.motif, secondary.motif]:
-        if spacing.distance == distance and spacing.same_strand == same_strand and spacing.upstream == upstream:
+        if spacing.distance == distance and spacing.same_strand == same_strand \
+                and spacing.upstream == upstream:
             found_pair_occurrence(spacing, primary, secondary)
 
 
@@ -77,9 +74,9 @@ Finds pairs of motif occurrences in a PWM scan
 that are a predefined distance apart.
 The motifs and the distances are defined in the spacings file. Each line
 in this file gives one pair of motifs, their orientation and the distance
-they should be apart. The fields in each line are primary motif, 
+they should be apart. The fields in each line are primary motif,
 secondary motif, whether the motifs are on the same strand, whether the
-secondary occurrence is upstream or downstream of the primary occurrence, 
+secondary occurrence is upstream or downstream of the primary occurrence,
 and the distance between the occurrences. The fields are separated by
 whitespace.
 """,
@@ -108,7 +105,9 @@ if 1 != len(args):
 #
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 log_file_handler = logging.FileHandler(
-    os.path.join(options.results_dir, 'steme-find-spacings-max=%d.log' % options.max_distance), mode='w')
+    os.path.join(
+        options.results_dir,
+        'steme-find-spacings-max=%d.log' % options.max_distance), mode='w')
 log_file_handler.setFormatter(formatter)
 log_file_handler.setLevel(logging.INFO)
 logging.getLogger('').addHandler(log_file_handler)
@@ -149,7 +148,7 @@ if options.seqs:
 #
 logging.info(
     'Examining spacings of up to %d b.p. between %d occurrences of '
-        '%d motifs in %d sequences',
+    '%d motifs in %d sequences',
     options.max_distance, len(occurrences), len(motifs), len(seq_infos)
 )
 pair_occurrences = []

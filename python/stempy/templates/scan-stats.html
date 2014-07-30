@@ -79,15 +79,24 @@
         <p>
         <hr>
         <h2 id="interactions">Interactions</h2>
-        <img src="scan-stats/scan-best-Z.png" alt="Scan best Z image is missing!"/>
-        <img src="scan-stats/scan-cooccurrences.png" alt="Scan co-occurrences image is missing!"/>
+        <img src="scan-stats/scan-collinearity.png" alt="Scan collinearity image is missing!"/>
         <br>
-        The first plot shows the strength of the best hit for each motif (y-axis) in
+        The second plot shows a statistic measuring the collinearity of a pair of motifs
+        across the sequences. If \(Z_{m,s}\) is the best Z-score for motif \(m\) in sequence
+        \(s\), then the statistic for the pair \(m_1, m_2\) is
+        \[
+            \frac{\sqrt{\langle Z_{m_1}, Z_{m_2} \rangle} }{|| Z_{m_2} ||}
+        \]
+        The motifs are ordered according to a hierarchical clustering (not shown).
+
+        <p>
+        <hr>
+        <img src="scan-stats/scan-best-Z.png" alt="Scan best Z image is missing!"/>
+        <br>
+        This plot shows the strength of the best hit for each motif (y-axis) in
         each sequence (x-axis). The motifs are hierarchically clustered on the basis
-        of which sequences they have strong hits in.
-        The second plot shows a statistic measuring the co-occurrence of a pair of motifs
-        across the sequences.
-        The motifs are again ordered according to a hierarchical clustering (not shown).
+        of which sequences they have strong hits in. The sequences have been K-means
+        clustered into {{ num_seq_clusters }} clusters.
 
     {% else %}
         
