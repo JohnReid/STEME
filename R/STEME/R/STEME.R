@@ -129,35 +129,35 @@ widen.seq.centric <- function(seq.centric) {
 }
 
 
-#' Scatter plot the scores for two motifs on the same sites
+#' Find hits of two motifs a certain distance apart
 #'
 #' @param hits The hits member of a steme.scan
-#' @param motif.1 The first motif to compare scores for
-#' @param motif.2 The second motif to compare scores for
-#' @param offset.1 Offset to move position of first motif hits
+#' @param motif.x The first motif to compare scores for
+#' @param motif.y The second motif to compare scores for
+#' @param spacing Distance(s) between start of hits
 #' @param same.strand Match hits on the same strand?
-plot.site.scores <- function(hits, motif.x, motif.y, offset.x=0, same.strand=TRUE) {
+find.spaced.pairs <- function(hits, motif.x, motif.y, spacing=0, same.strand=TRUE) {
     stopifnot(motif.x %in% hits$motif)
     stopifnot(motif.y %in% hits$motif)
     hits.x <- hits %>% filter(motif == motif.x)
+    W.x <- str_length(hits.x$Wmer[1])
     # print(head(hits.x))
     # print(dim(hits.x))
     hits.y <- hits %>% filter(motif == motif.y)
+    W.y <- str_length(hits.y$Wmer[1])
     # print(dim(hits.y))
     hits.both <- (
         inner_join(hits.x, hits.y, by="seqidx")
-        %>% mutate(position.diff=ifelse(strand.x == '+',
+        %>% mutate(offset.y=ifelse(strand.x == '+',
                                         position.y - position.x,
-                                        position.x - position.y))
+                                        position.x + W.x - position.y - W.y))
         %>% filter(xor(! same.strand, strand.x == strand.y),
-                   position.diff == offset.x)
+                   offset.y %in% spacing)
     )
-    # colnames(hits.both)
-    gp <- ggplot(hits.both, aes(x=Z.x, y=Z.y)) + geom_point()
-    # sample_n(hits.both, 30)
     return(list(
-        hits.both=hits.both,
-        hits.x=hits.x,
-        hits.y=hits.y,
-        gp=gp))
+        hits.x = hits.x,
+        hits.y = hits.y,
+        W.x = W.x,
+        W.y = W.y,
+        hits.both = hits.both))
 }
