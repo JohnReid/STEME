@@ -157,7 +157,7 @@ plot.site.scores <- function(hits, motif.x, motif.y, offset.x=0, same.strand=TRU
     # sample_n(hits.both, 30)
     return(list(
         hits.both=hits.both,
-        hits.1=hits.1,
-        hits.2=hits.2,
+        hits.x=hits.x,
+        hits.y=hits.y,
         gp=gp))
 }
