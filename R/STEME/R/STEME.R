@@ -15,6 +15,7 @@ NULL
 # library(preprocessCore)
 # library(org.Mm.eg.db)
 
+
 #' Example STEME scan results
 #'
 #' A dataset containing the results of a STEME scan of 90 PWMs over
@@ -31,10 +32,12 @@ NULL
 #' @name example.steme.scan
 NULL
 
+
 #' Read the results of a STEME scan from a directory
 #'
 #' @param scan.dir The directory to read the scan from. The directory should
 #'   contain the files 'steme-pwm-scan.out' and 'steme-pwm-scan.seqs'
+#' @export
 read.steme.scan <- function(scan.dir) {
     hits.filename <- paste(scan.dir, 'steme-pwm-scan.out', sep='/')
     seqs.filename <- paste(scan.dir, 'steme-pwm-scan.seqs', sep='/')
@@ -66,6 +69,7 @@ read.steme.scan <- function(scan.dir) {
     return(result)
 }
 
+
 #' Print the results of a STEME scan
 #'
 #' @param steme.scan The scan to print
@@ -74,24 +78,30 @@ print.steme.scan <- function(steme.scan) {
     print(steme.scan$seqs)
 }
 
+
 #' Summarise the results of a STEME scan
 #'
-#' @param steme.scan The scan to summarise
+#' @param object The scan to summarise
+#' @param ... Other arguments (ignored)
+#' @export
 ## @examples
 ## data(example.steme.scan, package="STEME")
 ## summary(example.steme.scan)
-summary.steme.scan <- function(steme.scan) {
+summary.steme.scan <- function(object, ...) {
     cat("STEME scan:",
-        nrow(steme.scan$hits), "hits",
-        "for", length(levels(steme.scan$hits$motif)), "motifs",
-        "in", nrow(steme.scan$seqs), "sequences,",
-        sprintf('Z range: [%.3f, %.3f]\n', min(steme.scan$hits$Z), max(steme.scan$hits$Z)))
+        nrow(object$hits), "hits",
+        "for", length(levels(object$hits$motif)), "motifs",
+        "in", nrow(object$seqs), "sequences,",
+        "comprising", sum(object$seqs$Length), "base pairs,",
+        sprintf('Z range: [%.3f, %.3f]\n', min(object$hits$Z), max(object$hits$Z)))
 }
+
 
 #' Calculate sequence-centric statistics from a steme.scan hits object
 #'
 #' @param hits The hits member of a steme.scan
 #' @return A data frame containing sequence centric statistics
+#' @export
 calc.seq.centric <- function(hits) {
     return(
         hits
@@ -105,13 +115,49 @@ calc.seq.centric <- function(hits) {
     )
 }
 
+
 #' Widen the results of a sequence-centric set of hits
 #'
 #' @param seq.centric The sequence centric statistics
+#' @export
 widen.seq.centric <- function(seq.centric) {
     seq.centric.molten <- melt(
         seq.centric,
         id.vars=c("seqidx", "motif"),
         variable.name="stat")
     return(dcast(seq.centric.molten, seqidx ~ motif + stat))
+}
+
+
+#' Scatter plot the scores for two motifs on the same sites
+#'
+#' @param hits The hits member of a steme.scan
+#' @param motif.1 The first motif to compare scores for
+#' @param motif.2 The second motif to compare scores for
+#' @param offset.1 Offset to move position of first motif hits
+#' @param same.strand Match hits on the same strand?
+plot.site.scores <- function(hits, motif.x, motif.y, offset.x=0, same.strand=TRUE) {
+    stopifnot(motif.x %in% hits$motif)
+    stopifnot(motif.y %in% hits$motif)
+    hits.x <- hits %>% filter(motif == motif.x)
+    # print(head(hits.x))
+    # print(dim(hits.x))
+    hits.y <- hits %>% filter(motif == motif.y)
+    # print(dim(hits.y))
+    hits.both <- (
+        inner_join(hits.x, hits.y, by="seqidx")
+        %>% mutate(position.diff=ifelse(strand.x == '+',
+                                        position.y - position.x,
+                                        position.x - position.y))
+        %>% filter(xor(! same.strand, strand.x == strand.y),
+                   position.diff == offset.x)
+    )
+    # colnames(hits.both)
+    gp <- ggplot(hits.both, aes(x=Z.x, y=Z.y)) + geom_point()
+    # sample_n(hits.both, 30)
+    return(list(
+        hits.both=hits.both,
+        hits.1=hits.1,
+        hits.2=hits.2,
+        gp=gp))
 }
