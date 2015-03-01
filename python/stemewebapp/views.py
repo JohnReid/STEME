@@ -7,7 +7,10 @@
 Views for STEME web app.
 """
 
-import os, logging, subprocess, psutil
+import os
+import logging
+import subprocess
+import psutil
 from flask import render_template, flash, url_for, redirect, Markup, request
 from werkzeug import secure_filename
 from sqlalchemy.sql import desc
@@ -17,6 +20,7 @@ from .models import Job, db
 from .forms import NewJobForm
 
 logger = logging.getLogger(__name__)
+
 
 def upload_file(f, d):
     """
@@ -58,7 +62,6 @@ def job_log_url(uuid):
     return 'result/%s/steme.log' % uuid
 
 
-
 def named_job(job, link=True):
     """
     Return some markup that refers to a job.
@@ -89,11 +92,11 @@ def check_jobs_finished():
         if None != retval:
             logger.info('Job with pid %d has finished', popen.pid)
             for job in Job.query.filter_by(pid=popen.pid).all():
-                job.completed = True # set completed flag on job to true
-            app.popens.remove(popen) # remove from list when finished
+                job.completed = True  # set completed flag on job to true
+            app.popens.remove(popen)  # remove from list when finished
             flash('Job "%s" has finished' % job.name)
     db.session.commit()
-    
+
     #
     # Check each job that still has not completed
     #
@@ -101,12 +104,11 @@ def check_jobs_finished():
         try:
             psutil.Process(job.pid)
         except psutil.NoSuchProcess:
-            logger.warning('Could not find process for job %s with pid %d', job.uuid, job.pid)
+            logger.warning('Could not find process for job %s with pid %d',
+                           job.uuid, job.pid)
             job.completed = True
             flash('Job "%s" has finished' % job.name)
     db.session.commit()
-
-
 
 
 def check_job_successful(job):
@@ -119,11 +121,10 @@ def check_job_successful(job):
     successful = (
         os.path.exists(job_dir)
         and os.path.exists(html)
-        and os.stat(html).st_size # non-empty HTML
+        and os.stat(html).st_size  # non-empty HTML
         and os.path.exists(meme)
     )
     return successful
-
 
 
 def run_steme(form, job):
@@ -131,7 +132,8 @@ def run_steme(form, job):
     Run the STEME algorithm.
     """
     # set up arguments
-    seqs_filename, _path = upload_file(form.sequences.file, job_directory(job.uuid))
+    seqs_filename, _path = upload_file(form.sequences.file,
+                                       job_directory(job.uuid))
     args = [
         app.config['PYTHON_EXE'],
         app.config['STEME_SCRIPT'],
@@ -142,7 +144,7 @@ def run_steme(form, job):
         '--maxw', form.max_w.data,
         '--max-start-finding-time', form.max_start_finding_time.data,
     ]
-    
+
     # add min/max # of sites if given
     if form.min_sites.data:
         args.append('--min-sites')
@@ -150,36 +152,51 @@ def run_steme(form, job):
     if form.max_sites.data:
         args.append('--max-sites')
         args.append(form.max_sites.data)
-    
+
     # Add arguments for background FASTA file if given
     if form.bg_fasta_file.file:
-        bg_filename, _path = upload_file(form.bg_fasta_file.file, job_directory(job.uuid))
+        bg_filename, _path = upload_file(form.bg_fasta_file.file,
+                                         job_directory(job.uuid))
         args.append('--bg-fasta-file')
         args.append(bg_filename)
-    
+
     # Add TOMTOM arguments
     for motif_db in app.config['MOTIF_DBS']:
         args.append('--tomtom')
         args.append(motif_db)
-    
+
     # Add sequence file
     args.append(seqs_filename)
-        
-    args = map(str, args) # convert to strings
-    logger.info('Starting STEME job %s with args: %s', job.uuid, ' '.join(('"%s"' % a) for a in args))
+
+    args = map(str, args)  # convert to strings
+    logger.info('Starting STEME job %s with args: %s',
+                job.uuid, ' '.join(('"%s"' % a) for a in args))
     stdout = open(job_file(job.uuid, 'STEME.out'), 'w')
     if 'PYTHONPATH' in app.config:
         os.environ['PYTHONPATH'] = app.config['PYTHONPATH']
     popen = subprocess.Popen(
-        args, 
-        bufsize=-1, 
-        stdout=stdout, 
-        stderr=subprocess.STDOUT, 
+        args,
+        bufsize=-1,
+        stdout=stdout,
+        stderr=subprocess.STDOUT,
         close_fds=True,
         cwd=job_directory(job.uuid)
     )
-    app.popens.append(popen) # remember popen to determine when completed
+    app.popens.append(popen)  # remember popen to determine when completed
     return popen
+
+
+def read_motd():
+    "Read the MOTD from its file if it exists."
+    motd = ''
+    if 'MOTDFILE' in app.config:
+        motdfile = app.config['MOTDFILE']
+        if os.path.exists(motdfile):
+            try:
+                motd = open(app.config['MOTDFILE']).read()
+            except:
+                pass
+    return motd
 
 
 @app.route('/')
@@ -187,7 +204,7 @@ def home():
     """
     The home view.
     """
-    return render_template("home.html")
+    return render_template("home.html", motd=read_motd())
 
 
 @app.route('/new', methods=['GET', 'POST'])
@@ -201,14 +218,15 @@ def new_job():
         job_dir = job_directory(job.uuid)
         if not os.path.exists(job_dir):
             os.mkdir(job_dir)
-        logger.info('Adding new job uuid=%s submitted from %s to database', job.uuid, request.remote_addr)
+        logger.info('Adding new job uuid=%s submitted from %s to database',
+                    job.uuid, request.remote_addr)
         popen = run_steme(form, job)
         job.pid = popen.pid
         db.session.add(job)
         db.session.commit()
         flash(u'Started new job')
         return redirect(url_for('list_jobs'))
-    return render_template("newjob.html", form=form)
+    return render_template("newjob.html", motd=read_motd(), form=form)
 
 
 @app.route('/jobs')
@@ -218,13 +236,13 @@ def list_jobs():
     """
     check_jobs_finished()
     return render_template(
-        "listjobs.html", 
-        jobs=Job.query.order_by(desc(Job.creation_date)).all(), 
+        "listjobs.html",
+        jobs=Job.query.order_by(desc(Job.creation_date)).all(),
         named_job=named_job,
         check_job_successful=check_job_successful,
         job_log_url=job_log_url,
+        motd=read_motd(),
     )
-
 
 
 @app.route('/result/<jobid>/')
@@ -232,7 +250,5 @@ def job_result(jobid):
     """
     The view of the results of a job.
     """
-    return open(os.path.join(app.config['JOB_FOLDER'], jobid, 'STEME.html')).read()
-
-
-
+    return open(os.path.join(app.config['JOB_FOLDER'],
+                             jobid, 'STEME.html')).read()

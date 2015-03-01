@@ -45,16 +45,22 @@
   </div>
   <p>
 
-  
+
+  <div id="message" align="center">
+    {{ motd|safe }}
+  </div>
+  <p>
+
+
   <div id="page" class=page>
     {% for message in get_flashed_messages() %}
       <div class=flash>{{ message }}</div>
       <p>
     {% endfor %}
-    
+
     {% block body %}{% endblock %}
   </div>
 
-  
+
 </div>
   

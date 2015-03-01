@@ -1,4 +1,4 @@
-/** Copyright John Reid 2011, 2012
+/** Copyright John Reid 2011, 2012, 2013, 2014, 2015
  *
  * \file
  * \brief Seqan types for STEME algorithm.
@@ -9,6 +9,7 @@
 #define STEME_JR_13AUG2011_SEQAN_TYPES_H_
 
 #include <steme/defs.h>
+// No longer in Seqan versions after 1.4.2 so please use version 1.4.2
 #include <seqan/find_motif.h>
 
 namespace steme {

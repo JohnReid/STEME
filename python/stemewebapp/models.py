@@ -8,7 +8,7 @@ Models for STEME web app.
 """
 
 
-from uuid import uuid4 
+from uuid import uuid4
 from datetime import datetime
 
 try:
@@ -18,7 +18,6 @@ except NameError:
 
 from .application import app
 db = SQLAlchemy(app)
-
 
 
 class Job(db.Model):
@@ -41,4 +40,3 @@ class Job(db.Model):
 
     def __repr__(self):
         return '<Job %r>' % (self.id)
-

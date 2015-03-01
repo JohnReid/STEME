@@ -14,8 +14,8 @@ USERNAME = 'admin'
 PASSWORD = 'default'
 ADMINS = ['john.reid@mrc-bsu.cam.ac.uk']
 SQLALCHEMY_DATABASE_URI = 'sqlite:////tmp/STEME.db'
-JOB_FOLDER = '/home/john/Dev/MyProjects/STEME/www/jobs'
-STEME_SCRIPT = '/home/john/Dev/MyProjects/STEME/python/scripts/steme'
+JOB_FOLDER = '/home/john/Dev/STEME/www/jobs'
+STEME_SCRIPT = '/home/john/Dev/STEME/python/scripts/steme'
 PYTHON_EXE = '/usr/bin/python2'
 MOTIF_DBS = [
     '/home/john/Data/Jaspar/JASPAR_core.meme',
