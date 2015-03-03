@@ -1,0 +1,57 @@
+%        File: steme-importance.tex
+%     Created: Sun Jul 06 12:00 PM 2014 B
+% Last Change: Sun Jul 06 12:00 PM 2014 B
+%
+\documentclass[a4paper]{article}
+
+%
+% Good packages to have
+%
+\usepackage[UKenglish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{csquotes}
+
+%
+% Set up biblatex
+%
+%\usepackage[style=numeric-comp,backend=biber,sorting=none,doi=false,url=false,isbn=false]{biblatex}
+%\addbibresource{<+bibliography.bib+>}
+
+%
+% Specify title page
+%
+\title{STEME importance sampling}
+\author{John Reid}
+
+
+\begin{document}
+
+MEME's EM algorithm is dominated by calculations of the form
+\[
+  \sum_{n \in T} \langle Z_n \rangle
+\]
+for some set $T$. STEME approximates these sums by ignoring those $n$ for
+which $\langle Z_n \rangle$ is small:
+\[
+  \sum_{n \in T} \langle Z_n \rangle \approx
+  \sum_{n \in T_\delta} \langle Z_n \rangle
+\] where $T_\delta = \{ n : Z_n \ge \delta \}$.
+Another way to estimate these sums is importance sampling. Suppose $f(n)$
+is a uniform distribution over $T$, then
+\[
+  \sum_{n \in T} \langle Z_n \rangle
+  = |T| \bigg\langle \langle Z_n \rangle \bigg\rangle_{f(.)}
+\]
+where the outer expectation is with respect to $f(.)$ and the inner expectation
+is with respect to MEME's model. Now if $g(n)$ is another distribution over $T$,
+we can use importance sampling from $g(.)$
+\[
+  \sum_{n \in T} \langle Z_n \rangle
+  = |T| \bigg \langle \frac{f(n)}{g(n)} \langle Z_n \rangle \bigg\rangle_{g(.)}
+\]
+
+%\printbibliography
+
+\end{document}
+
+
