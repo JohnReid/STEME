@@ -9,7 +9,8 @@ setuptools setup script for STEME.
 Adapted from http://git.tiker.net/pyublas.git/tree.
 """
 
-import os, sys
+import os
+import sys
 
 # is it a python debug build?
 _python_debug_build = hasattr(sys, "gettotalrefcount")
@@ -28,7 +29,7 @@ def read(*fnames):
 
 def get_config_schema():
     from aksetup_helper import ConfigSchema, Option, \
-            IncludeDir, LibraryDir, Libraries, BoostLibraries, \
+            IncludeDir, Libraries, BoostLibraries, \
             Switch, StringListOption, make_boost_base_options
 
     import sys
@@ -175,6 +176,7 @@ def main():
 
     setup(
         name                  = 'STEME',
+        zip_safe              = False,
         version               = read('python', 'stempy', 'VERSION').strip().split('-')[0],
         description           = 'STEME: an accurate efficient motif finder for large data sets.',
         long_description      = read('python', 'stempy', 'README'),
@@ -249,9 +251,5 @@ def main():
     )
 
 
-
-
-
 if __name__ == '__main__':
     main()
-
