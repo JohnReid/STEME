@@ -1,3 +1,7 @@
+var
+000-default.conf
+MOTD.html
+pip-installs.txt
 steme-test
 virtualenv
 install-test-env
