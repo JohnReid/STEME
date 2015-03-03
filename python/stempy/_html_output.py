@@ -124,7 +124,7 @@ class HTMLOutput(object):
                         motif,
                         motif_name(motif.idx, algorithm.options),
                         HTMLOutput._image_url(motif_name(motif.idx, algorithm.options)),
-                        HTMLOutput._image_url(idx, 'eps')
+                        HTMLOutput._image_url(motif_name(motif.idx, algorithm.options), 'eps')
                     )
                     for idx, motif in enumerate(algorithm.motifs)],
                 **variables
