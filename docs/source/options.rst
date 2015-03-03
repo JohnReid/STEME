@@ -74,6 +74,10 @@ Control the output location, format, writing logos, etc...
 
 ``--max-sites-to-write`` *(default=1000)*: Maximum number of sites to write information about in output.
 
+.. _option-motif-name:
+
+``--motif-name`` *(default=STEME-)*: Name for output motifs.
+
 
 
 
