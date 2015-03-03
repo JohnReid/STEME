@@ -2,4 +2,4 @@
   OR at a minimum that it installs: bjam -q release install
 * Update version number in python/stempy/VERSION
 * Make sure code is checked in: 'git commit -m"Your message"'
-* Run etc/update-dist
+* Run etc/dist-update
