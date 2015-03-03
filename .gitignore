@@ -1,3 +1,4 @@
+*.freeze
 var
 000-default.conf
 MOTD.html
