@@ -81,7 +81,7 @@ struct hirji_shifted {
                 adjustments[ n1 - 1 ] = LLR_adjustment - round( LLR_adjustment );
                 const slice_t log_pmf = alg.get_log_pmf( n1 );
                 double curr = std::log( 0. );
-                log_cmfs[ n1 - 1 ].resize( boost::size( log_pmf ) );
+                log_cmfs[ n1 - 1 ].resize( boost::end( log_pmf )  - boost::begin( log_pmf ) );
                 typename float_vec::reverse_iterator i = log_cmfs[ n1 - 1 ].rbegin();
                 BOOST_FOREACH( float_t log_p, log_pmf | boost::adaptors::reversed ) {
                     curr = log_add( curr, log_p );

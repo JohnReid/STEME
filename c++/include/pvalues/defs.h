@@ -436,7 +436,7 @@ template< typename PmfRange >
 boost::shared_array< typename boost::range_value< PmfRange >::type >
 calculate_log_cumulative( const PmfRange & log_pmf, bool normalise = true ) {
     typedef typename boost::range_value< PmfRange >::type float_t;
-    const size_t Q = boost::size( log_pmf );
+    const size_t Q = boost::end( log_pmf ) - boost::begin( log_pmf );
     boost::shared_array< double > result( new float_t[ Q ] );
     float_t log_cdf = std::log( 0. );
     for( int q = Q; 0 != q; ) {
