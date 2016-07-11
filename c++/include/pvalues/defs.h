@@ -1,5 +1,5 @@
 /**
- * Copyright John Reid 2011
+ * Copyright John Reid 2011, 2016
  *
  * \file Code to calculate p-values.
  */

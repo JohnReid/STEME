@@ -62,6 +62,10 @@ on your system:
 
     sudo apt-get install seqan-dev
 
+  Although you may find that STEME does not compile against all versions of
+  SeqAn. If you have any problems, you can install the SeqAn headers from
+  `version 1.4.2`_.
+
 
 - `FFTW3`_: A library for computing discrete Fourier transforms. Install it::
 
@@ -99,6 +103,7 @@ on your system:
 .. _Boost python C++ library: http://www.boost.org/
 .. _commands: http://www.boost.org/doc/libs/1_49_0/more/getting_started/unix-variants.html#easy-build-and-install
 .. _SeqAn sequence analysis library: http://www.seqan.de/
+.. _version 1.4.2: https://github.com/seqan/seqan/releases/tag/seqan-v1.4.2
 .. _FFTW3: _http://www.fftw.org/
 .. _FFTW3 from source: _http://www.fftw.org/download.html
 

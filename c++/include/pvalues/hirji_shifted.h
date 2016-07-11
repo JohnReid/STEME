@@ -1,5 +1,5 @@
 /**
- * Copyright John Reid 2011
+ * Copyright John Reid 2011, 2016
  *
  * \file Implementation of Nagarajan's shifted version of Hirji's algorithm.
  * See "Computing the P-value of the information content from an alignment of multiple
