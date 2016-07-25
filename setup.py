@@ -212,8 +212,10 @@ def main():
                                         'templates/job.html',
                                         'templates/layout.html',
                                         'templates/motif.html',
+                                        'templates/motifs.html',
                                         'templates/options.html',
                                         'templates/scan-stats.html',
+                                        'templates/spacing.html',
                                         'templates/wide-layout.html',
                                     ],
                                     'stemewebapp': [
