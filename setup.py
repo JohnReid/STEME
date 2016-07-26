@@ -239,6 +239,7 @@ def main():
                                     'python/scripts/steme-em',
                                     'python/scripts/steme-find-spacings',
                                     'python/scripts/steme-motif-logos',
+                                    'python/scripts/steme-mutate-motifs',
                                     'python/scripts/steme-pwm-scan',
                                     'python/scripts/steme-scan-stats',
                                     'python/scripts/steme-seqs-2-motif',
