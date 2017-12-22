@@ -82,6 +82,7 @@ if $(HAS_MEME_SOURCE_CODE) {
         <define>UNIX
         <define>__USE_FIXED_PROTOTYPES__
         <define>HAVE_CONFIG_H
+        # <toolset>gcc:<cflags>-std=gnu89
         ;
     lib meme
         : # sources
@@ -151,6 +152,8 @@ lib pvalues
     :
         $(PVALUES_SRC)
         fast
+    :
+        # <toolset>gcc:<cflags>-std=gnu89
     ;
 exe test_pvalue_speeds
     :   pvalues/test_pvalue_speeds.cpp pvalues
@@ -329,6 +332,7 @@ for TEST_SRC in $(TEST_SRCS) {
             pvalues
             /boost/system//boost_system
             /boost/filesystem//boost_filesystem
+            # /boost/test//boost_unit_test_framework
             /boost/test//boost_unit_test_framework/<link>static
         :
             <toolset>msvc:<variant>debug:<testing.launcher>=dbg.bat

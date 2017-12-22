@@ -115,7 +115,7 @@ expose_tree_descender( Class & class_ ) {
 
 template< typename T >
 bool optional_has_value( boost::optional< T > optional ) {
-	return optional;
+	return bool( optional );
 }
 
 template< typename T >

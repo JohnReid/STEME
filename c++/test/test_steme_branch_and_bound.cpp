@@ -7,6 +7,9 @@
 
 #include <boost/assign/list_of.hpp>
 #include <boost/test/utils/wrap_stringstream.hpp>
+#if (BOOST_VERSION / 100) >= 159
+# include <boost/test/included/unit_test.hpp>
+#endif
 #include <boost/test/floating_point_comparison.hpp>
 #include <boost/timer.hpp>
 #include <boost/filesystem.hpp>
@@ -56,10 +59,10 @@ read_fasta(
     string_set_t & sequences
 ) {
     // Open file and create RecordReader.
-    ifstream fasta( filename.c_str(), std::ios_base::in | std::ios_base::binary );
+    std::ifstream fasta( filename.c_str(), std::ios_base::in | std::ios_base::binary );
     if(! fasta.good() )
         throw std::logic_error( "Could not open FASTA file." );
-    RecordReader< ifstream, SinglePass<> > reader( fasta );
+    RecordReader< std::ifstream, SinglePass<> > reader( fasta );
     // Define variables for storing the sequences and sequence ids.
     if( read2( ids, sequences, reader, Fasta() ) != 0 ) {
         throw std::logic_error( "ERROR reading FASTA." );
@@ -95,6 +98,10 @@ get_num_above_threshold( const std::vector< double > & calculated, double thresh
 
 void
 throw_if_not_close( double x, double y, double tolerance, const char * msg ) {
+#if (BOOST_VERSION / 100) >= 159
+    // quick hack to get working with modern boost versions, will not throw error like old implementation
+    BOOST_REQUIRE_CLOSE( x, y, tolerance );
+#else
     using ::boost::test_tools::check_is_close;
     using ::boost::test_tools::fraction_tolerance;
     using ::boost::test_tools::percent_tolerance;
@@ -106,6 +113,7 @@ throw_if_not_close( double x, double y, double tolerance, const char * msg ) {
             ).c_str()
         );
     }
+#endif
 }
 
 
