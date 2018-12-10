@@ -78,11 +78,11 @@ _description_re = re.compile(
 def parse_record_description(description):
     """
     Description will look like:
-    
+
     "A randomly generated sequence of length 97: site AAAGGCTC at position 81 (reverse complement)"
     """
     match = _description_re.search(description)
-    if None == match:
+    if match is None:
         raise ValueError('Could not parse description: %s', description)
     site = match.group(1)
     pos = int(match.group(2))

@@ -412,7 +412,7 @@ def log_option_groups(option_parser, options):
 
 def parse_options(additional_options_adder=None, option_parser=None):
     "Parse command line options."
-    if None == option_parser:
+    if option_parser is None:
         option_parser = OptionParser()
     if additional_options_adder:
         additional_options_adder(option_parser)
@@ -547,7 +547,7 @@ def logo(dist, tag, d, make_png=False, make_eps=True, write_title=True, show_fin
 
 def consensus_from_pssm(pssm, bg_freqs=None):
     "@return: The consensus sequence for the PSSM."
-    if None != bg_freqs:
+    if bg_freqs is not None:
         pssm = pssm / bg_freqs
     indices = pssm.argmax(axis=1)
     bases = ['A', 'C', 'G', 'T']
@@ -788,7 +788,7 @@ def instance_info(instance, data, ids, W, scaled_log_odds=None, pssm_cdf=None):
     wmer = data.get_W_mer(W, instance.global_pos)
     if instance.rev_comp:
         wmer = reverse_complement(wmer)
-    if None != scaled_log_odds and None != pssm_cdf:
+    if scaled_log_odds is not None and pssm_cdf is not None:
         logger.debug('Scoring W-mer: %s', wmer)
         score = score_pssm_on_seq(scaled_log_odds, imap(index_for_base, wmer))
         pvalue = pssm_cdf[score]
@@ -939,7 +939,7 @@ def rationalise_predictions(predictions):
         if last_seq == seq and last_interval.overlap(interval):
             last_interval = last_interval.hull(interval)
         else:
-            if None != last_seq:
+            if last_seq is not None:
                 yield last_seq, last_interval
             last_seq, last_interval = seq, interval
     if last_seq:
@@ -1067,7 +1067,7 @@ def log_best_w_mers(data, W, best_w_mer_finder, num_w_mers, level=logging.DEBUG,
     distance = '-'
     for w_mer in best_w_mers[:num_w_mers]:
         s = get_Wmer(data, W, w_mer)
-        if None != consensus:
+        if consensus is not None:
             distance = str(hamming_distance(s, consensus))
         logger.log(
             level,
@@ -1399,7 +1399,7 @@ class MotifFinder(object):
 
     def _run_em_from_start(self, start, callback=None, return_EM=False):
         "Run EM from a given seed (start)."
-        if None == start.model:
+        if start.model is None:
             model = self._create_model(len(start.seed))
         else:
             model = start.model.copy()
@@ -1467,7 +1467,7 @@ class MotifFinder(object):
                     theta), EM.num_Z_non_zero, EM.num_Z_large,
                 EM.num_Z_normalised, EM.using_sparse_Z, duration, cumulative_duration, theta_distance
             )
-            if None != callback:
+            if callback is not None:
                 callback(steme=self, iter=num_iter, em=EM, theta=theta,
                          theta_distance=theta_distance, duration=duration)
             if self.options.write_em_logos:
@@ -1749,7 +1749,7 @@ class MotifFinder(object):
                     # if we never ran EM on this start before or if the E-value stayed the same or improved
                     # since the last run of EM then we don't examine any more starts
                     #
-                    if None == last_sig or sig <= last_sig:
+                    if last_sig is None or sig <= last_sig:
                         break
 
         logger.info('Ran EM on %d starts', len(start_results))
@@ -2421,7 +2421,7 @@ class Algorithm(object):
             #
             motif_finder = self.create_motif_finder(motif_idx)
             motif = motif_finder(self.start_finder)
-            if None != motif:
+            if motif is not None:
                 self.motifs.append(motif)
                 self.output_motif(motif, seconds_taken=timer.timer.duration())
             return motif
