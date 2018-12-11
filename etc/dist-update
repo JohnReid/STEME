@@ -6,7 +6,6 @@
 #
 PYPI_NAME=STEME
 DIR=www/STEME
-HOST=zemlinsky
 RSYNC="rsync --verbose  --progress --stats --compress --recursive --times --perms --links"
 
 
@@ -36,17 +35,13 @@ fi
 pip install sphinx sphinx-pypi-upload
 PYTHONPATH=python/:$PYTHONPATH python setup.py build_sphinx
 PYTHONPATH=python/:$PYTHONPATH python setup.py upload_sphinx
-scp index.html $HOST:$DIR/
-#scp docs/build/html/* $HOST:$DIR/docs/build/html/
-$RSYNC docs/build/html/* $HOST:$DIR/docs/build/html/
 
 
 #
-# Upload source build to pypi and our web host
+# Upload source build to pypi
 #
-python setup.py sdist upload --sign
-PACKAGE=$(ls -rt dist/*.tar.gz|tail -1) # get the latest package in dist/
-scp $PACKAGE $HOST:$DIR/dist/$(basename $PACKAGE)
+python setup.py sdist
+twine upload --verbose -r pypi dist/*
 
 
 #
